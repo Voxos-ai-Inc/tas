@@ -70,7 +70,7 @@ Session start
 
 ### Token Budgeting
 
-LLMs can reason about output volume (tokens) but not wall-clock time. The harness tracks effort in tokens. For the research behind why tokens are replacing hours as the unit of estimation — from METR's agent decay curves to Devin's ACU model — see [Stop Estimating AI Work in Human-Hours](https://voxos.ai/blog/token-based-effort-estimation-for-ai-agents/index.html). For how to close the feedback loop and calibrate estimates over time, see [AI Task Estimation Accuracy Tracking](https://voxos.ai/blog/ai-task-estimation-accuracy-tracking-ai-/index.html).
+LLMs can reason about output volume (tokens) but not wall-clock time. The harness tracks effort in tokens. For the research behind why tokens are replacing hours as the unit of estimation — from METR's agent decay curves to Devin's ACU model — see [Stop Estimating AI Work in Human-Hours](https://voxos.ai/blog/token-based-effort-estimation-for-ai-agents/index.html).
 
 ```bash
 # Estimate before starting
@@ -108,7 +108,7 @@ Total tasks:     12
 
 ### Skills
 
-Skills are slash commands defined in `.claude/skills/<slug>/SKILL.md` — a declarative way to teach agents repeatable tasks. For how this pattern fits the broader shift from imperative to declarative agent programming, see [Declarative Agent Programming: Why AI Agents Need Specifications, Not Scripts](https://voxos.ai/blog/declarative-agent-programming-why-ai-age/index.html). The harness ships with:
+Skills are slash commands defined in `.claude/skills/<slug>/SKILL.md` — a declarative way to teach agents repeatable tasks. For how this pattern fits the broader shift from imperative to declarative agent programming, see [The Declarative Agent Trap](https://voxos.ai/blog/declarative-agent-programming-why-ai-age/index.html). The harness ships with:
 
 | Skill | What it does |
 |-------|-------------|
