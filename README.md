@@ -292,4 +292,4 @@ MIT
 
 ---
 
-Built by [Voxos.ai](https://voxos.ai). We use this harness daily to run a 12-project monorepo with Claude Code.
+Built by [Voxos.ai](https://voxos.ai). We use this harness daily to run a 70+ project monorepo with Claude Code.
