@@ -160,7 +160,7 @@ The `CLAUDE.md` template establishes three document types:
 
 Every non-trivial change follows: **Baseline → Change → Measure → Compare → Record**.
 
-No vibes. No "I think it's faster." Capture the metric before, capture it after, show the delta in the commit message. See [Vibes Are Not a Metric: Measurement-Driven AI Development](https://voxos.ai/blog/vibes-are-not-a-metric-measurement-drive/index.html) for the case against gut-feel engineering with AI agents. For the case against vibes-based development, see [Vibes Are Not a Metric: Measurement-Driven AI Development](https://voxos.ai/blog/vibes-are-not-a-metric-measurement-drive/index.html).
+No vibes. No "I think it's faster." Capture the metric before, capture it after, show the delta in the commit message. See [Vibes Are Not a Metric: Measurement-Driven AI Development](https://voxos.ai/blog/vibes-are-not-a-metric-measurement-drive/index.html) for the case against gut-feel engineering with AI agents.
 
 ## File Structure
 
