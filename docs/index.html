@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Claude Code Harness — Session Tracking, Token Budgeting, Skills</title>
+  <meta name="description" content="An operational harness for Claude Code that adds session tracking, token budgeting, slash-command skills, and maintenance cadence to any project.">
+  <style>
+    :root {
+      --bg: #0a0a0a;
+      --surface: #141414;
+      --border: #2a2a2a;
+      --text: #e0e0e0;
+      --text-muted: #888;
+      --accent: #c9a0ff;
+      --accent-dim: #8b5cf6;
+      --code-bg: #1a1a2e;
+      --green: #4ade80;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    .container { max-width: 860px; margin: 0 auto; padding: 0 24px; }
+
+    /* Hero */
+    .hero {
+      padding: 80px 0 60px;
+      text-align: center;
+    }
+
+    .hero h1 {
+      font-size: 2.8rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      margin-bottom: 16px;
+    }
+
+    .hero h1 span { color: var(--accent); }
+
+    .hero p {
+      font-size: 1.2rem;
+      color: var(--text-muted);
+      max-width: 600px;
+      margin: 0 auto 32px;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 500;
+      text-decoration: none;
+      transition: all 0.15s;
+    }
+
+    .btn-primary {
+      background: var(--accent-dim);
+      color: #fff;
+    }
+
+    .btn-primary:hover { background: var(--accent); color: #000; }
+
+    .btn-secondary {
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover { border-color: var(--accent-dim); }
+
+    /* Install block */
+    .install {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px 24px;
+      margin: 40px auto;
+      max-width: 640px;
+      font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+      font-size: 0.9rem;
+      color: var(--green);
+      overflow-x: auto;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .install:hover { border-color: var(--accent-dim); }
+
+    .install::after {
+      content: 'click to copy';
+      position: absolute;
+      right: 12px;
+      top: 12px;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      font-family: -apple-system, sans-serif;
+    }
+
+    .install.copied::after {
+      content: 'copied!';
+      color: var(--green);
+    }
+
+    /* Layers */
+    .layers {
+      padding: 60px 0;
+    }
+
+    .layers h2 {
+      font-size: 1.6rem;
+      margin-bottom: 32px;
+      text-align: center;
+    }
+
+    .layer-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+    }
+
+    .layer-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 24px;
+    }
+
+    .layer-card h3 {
+      font-size: 1rem;
+      margin-bottom: 8px;
+      color: var(--accent);
+    }
+
+    .layer-card p {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    /* Diagram */
+    .diagram {
+      padding: 40px 0 60px;
+    }
+
+    .diagram h2 {
+      font-size: 1.6rem;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+
+    .diagram pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 24px;
+      font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+      font-size: 0.8rem;
+      overflow-x: auto;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* Analytics */
+    .analytics {
+      padding: 40px 0 60px;
+    }
+
+    .analytics h2 {
+      font-size: 1.6rem;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+
+    .analytics > p {
+      text-align: center;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+    }
+
+    .analytics pre {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 24px;
+      font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+      font-size: 0.85rem;
+      overflow-x: auto;
+      color: var(--text);
+      max-width: 540px;
+      margin: 0 auto;
+    }
+
+    .analytics pre .cmd { color: var(--green); }
+    .analytics pre .label { color: var(--text-muted); }
+    .analytics pre .value { color: var(--accent); }
+
+    /* Skills */
+    .skills {
+      padding: 40px 0 60px;
+    }
+
+    .skills h2 {
+      font-size: 1.6rem;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+
+    .skill-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .skill-table th, .skill-table td {
+      text-align: left;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .skill-table th {
+      color: var(--text-muted);
+      font-weight: 500;
+      font-size: 0.85rem;
+    }
+
+    .skill-table td:first-child {
+      font-family: 'SF Mono', monospace;
+      color: var(--accent);
+      font-size: 0.9rem;
+    }
+
+    .skill-table td {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    /* Footer */
+    .footer {
+      padding: 40px 0;
+      text-align: center;
+      border-top: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+    .footer a { color: var(--accent); text-decoration: none; }
+    .footer a:hover { text-decoration: underline; }
+
+    @media (max-width: 600px) {
+      .hero h1 { font-size: 2rem; }
+      .hero p { font-size: 1rem; }
+      .install { font-size: 0.75rem; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <section class="hero">
+    <h1>Claude Code <span>Harness</span></h1>
+    <p>Session tracking, token budgeting, slash-command skills, and maintenance cadence for any project.</p>
+    <div class="hero-actions">
+      <a href="https://github.com/voxos-ai/harness" class="btn btn-primary">View on GitHub</a>
+      <a href="https://github.com/voxos-ai/harness#quick-start" class="btn btn-secondary">Quick Start</a>
+    </div>
+  </section>
+
+  <div class="install" onclick="navigator.clipboard.writeText('git clone https://github.com/voxos-ai/harness.git /tmp/harness && bash /tmp/harness/setup.sh');this.classList.add('copied');setTimeout(()=>this.classList.remove('copied'),2000)">
+    git clone https://github.com/voxos-ai/harness.git /tmp/harness && bash /tmp/harness/setup.sh
+  </div>
+
+  <section class="layers">
+    <h2>What You Get</h2>
+    <div class="layer-grid">
+      <div class="layer-card">
+        <h3>Session Tracking</h3>
+        <p>Every session auto-registered on start, summarized on end. Crashed tabs detected as orphans with resume offered.</p>
+      </div>
+      <div class="layer-card">
+        <h3>Token Budgeting</h3>
+        <p>Estimate effort in tokens, not time. Track estimate vs. actual. Calibrate accuracy across sessions.</p>
+      </div>
+      <div class="layer-card">
+        <h3>Slash-Command Skills</h3>
+        <p>Ships with /commit, /done, /queue, /preview. Create your own with /nu. Skills are just markdown files.</p>
+      </div>
+      <div class="layer-card">
+        <h3>Maintenance Cadence</h3>
+        <p>Define recurring tasks with cadences (hourly, daily). Overdue tasks surfaced at session start.</p>
+      </div>
+      <div class="layer-card">
+        <h3>Persistent Memory</h3>
+        <p>Key facts survive across sessions. Version-controlled in your repo. Auto-pruned to stay concise.</p>
+      </div>
+      <div class="layer-card">
+        <h3>Prove It Loop</h3>
+        <p>Baseline &rarr; Change &rarr; Measure &rarr; Compare &rarr; Record. No vibes-based development.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="diagram">
+    <h2>Session Lifecycle</h2>
+    <pre>
+Session start
+  │
+  ├─ SessionStart hook fires
+  │    └─ session-register.sh → ~/.claude/session-tracking/&lt;id&gt;.json
+  │
+  ├─ You work, optionally logging tasks:
+  │    ├─ task-log.sh estimate → returns task_id
+  │    ├─ task-log.sh start   → marks work begun
+  │    └─ task-log.sh complete → records actual effort
+  │
+  ├─ Session ends
+  │    ├─ session-end.sh → parses transcript, writes sessions.jsonl
+  │    └─ task-check.sh  → nudges once if no tasks logged
+  │
+  └─ Later: cc-sessions.sh check
+       └─ Finds orphaned sessions → claude --resume &lt;id&gt;</pre>
+  </section>
+
+  <section class="analytics">
+    <h2>Built-in Analytics</h2>
+    <p>Query your session and task data from the command line.</p>
+    <pre>
+<span class="cmd">$ bash scripts/cc-budget.sh summary</span>
+
+<span class="label">=== Token Budget Summary ===</span>
+<span class="label">Sessions:       </span> <span class="value">47</span>
+<span class="label">Total duration:  </span> <span class="value">23.5h</span>
+<span class="label">Output tokens:   </span> <span class="value">234.5k</span>
+<span class="label">Avg output/sess: </span> <span class="value">5.0k</span>
+<span class="label">Avg turns/sess:  </span> <span class="value">8.2</span>
+<span class="label">Total compacts:  </span> <span class="value">3</span>
+<span class="label">Total tasks:     </span> <span class="value">12</span></pre>
+  </section>
+
+  <section class="skills">
+    <h2>Included Skills</h2>
+    <table class="skill-table">
+      <thead>
+        <tr><th>Command</th><th>Description</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>/commit</td><td>Stage diffs, generate commit message, commit</td></tr>
+        <tr><td>/done</td><td>Check if all session work is complete</td></tr>
+        <tr><td>/queue</td><td>Capture a task to QUEUE.md for a future session</td></tr>
+        <tr><td>/nu</td><td>Create a new skill from a description</td></tr>
+        <tr><td>/preview</td><td>Serve a markdown file as live HTML on localhost</td></tr>
+      </tbody>
+    </table>
+    <p style="text-align:center;color:var(--text-muted);margin-top:16px;font-size:0.9rem;">
+      Create your own: <code style="color:var(--accent);background:var(--code-bg);padding:2px 8px;border-radius:4px;">/nu deploy "Build, deploy to staging, invalidate CDN"</code>
+    </p>
+  </section>
+
+  <footer class="footer">
+    <p>MIT License &middot; Built by <a href="https://voxos.ai">Voxos.ai</a></p>
+  </footer>
+
+</div>
+
+</body>
+</html>
