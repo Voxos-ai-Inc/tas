@@ -70,7 +70,7 @@ Session start
 
 ### Token Budgeting
 
-LLMs can reason about output volume (tokens) but not wall-clock time. The harness tracks effort in tokens. For the research behind why tokens are replacing hours as the unit of estimation — from METR's agent decay curves to Devin's ACU model — see [Stop Estimating AI Work in Human-Hours](https://voxos.ai/blog/token-based-effort-estimation-for-ai-agents/index.html).
+LLMs can reason about output volume (tokens) but not wall-clock time. The harness tracks effort in tokens. For the research behind why tokens are replacing hours as the unit of estimation — from METR's agent decay curves to Devin's ACU model — see [Stop Estimating AI Work in Human-Hours](https://voxos.ai/blog/token-based-effort-estimation-for-ai-agents/index.html). For how to close the feedback loop and calibrate estimates over time, see [AI Task Estimation Accuracy Tracking](https://voxos.ai/blog/ai-task-estimation-accuracy-tracking-ai-/index.html).
 
 ```bash
 # Estimate before starting
@@ -108,7 +108,7 @@ Total tasks:     12
 
 ### Skills
 
-Skills are slash commands defined in `.claude/skills/<slug>/SKILL.md`. The harness ships with:
+Skills are slash commands defined in `.claude/skills/<slug>/SKILL.md` — a declarative way to teach agents repeatable tasks. For how this pattern fits the broader shift from imperative to declarative agent programming, see [Declarative Agent Programming: Why AI Agents Need Specifications, Not Scripts](https://voxos.ai/blog/declarative-agent-programming-why-ai-age/index.html). The harness ships with:
 
 | Skill | What it does |
 |-------|-------------|
@@ -128,7 +128,7 @@ This creates `.claude/skills/deploy/SKILL.md` with structured instructions that 
 
 ### Maintenance Cadence
 
-`MAINTENANCE.md` defines recurring tasks with cadences (session-start, hourly, daily). At each session start, Claude checks what's overdue and offers to run it:
+`MAINTENANCE.md` defines recurring tasks with cadences (session-start, hourly, daily). At each session start, Claude checks what's overdue and offers to run it. This turns your AI agent into an [Autonomous TPM](https://voxos.ai/blog/the-autonomous-tpm-giving-ai-agents-recu/index.html) — running recurring responsibilities without being asked:
 
 ```
 2 maintenance tasks are overdue:
@@ -144,7 +144,7 @@ Run them?
 - Environment quirks and platform-specific workarounds
 - Patterns confirmed across multiple interactions
 
-The setup script creates a directory junction so `~/.claude/projects/.../memory/` points into your repo. Memory files are version-controlled.
+The setup script creates a directory junction so `~/.claude/projects/.../memory/` points into your repo. Memory files are version-controlled. For a deeper look at why persistent memory changes how agents work, see [How to Give AI Coding Agents Long-Term Memory](https://voxos.ai/blog/how-to-give-ai-coding-agents-long-term-m/index.html).
 
 ### Document Discipline
 
@@ -160,7 +160,7 @@ The `CLAUDE.md` template establishes three document types:
 
 Every non-trivial change follows: **Baseline → Change → Measure → Compare → Record**.
 
-No vibes. No "I think it's faster." Capture the metric before, capture it after, show the delta in the commit message.
+No vibes. No "I think it's faster." Capture the metric before, capture it after, show the delta in the commit message. See [Vibes Are Not a Metric: Measurement-Driven AI Development](https://voxos.ai/blog/vibes-are-not-a-metric-measurement-drive/index.html) for the case against gut-feel engineering with AI agents. For the case against vibes-based development, see [Vibes Are Not a Metric: Measurement-Driven AI Development](https://voxos.ai/blog/vibes-are-not-a-metric-measurement-drive/index.html).
 
 ## File Structure
 
