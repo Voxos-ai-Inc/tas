@@ -70,7 +70,7 @@ Session start
 
 ### Token Budgeting
 
-LLMs can reason about output volume (tokens) but not wall-clock time. The harness tracks effort in tokens:
+LLMs can reason about output volume (tokens) but not wall-clock time. The harness tracks effort in tokens. For the research behind why tokens are replacing hours as the unit of estimation — from METR's agent decay curves to Devin's ACU model — see [Stop Estimating AI Work in Human-Hours](https://voxos.ai/blog/token-based-effort-estimation-for-ai-agents/index.html).
 
 ```bash
 # Estimate before starting
