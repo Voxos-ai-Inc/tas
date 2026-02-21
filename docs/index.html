@@ -371,6 +371,26 @@ Session start
     </p>
   </section>
 
+  <section class="analytics" style="padding-top:20px;">
+    <h2>Benchmark</h2>
+    <p>Does the harness actually help? Measure it. 11 tasks, two conditions, paired statistical tests.</p>
+    <pre>
+<span class="cmd">$ python runner.py run --label baseline --trials 3</span>
+<span class="cmd">$ python compare.py baseline --by-category</span>
+
+<span class="label">=== baseline: Vanilla vs Harness ===</span>
+
+<span class="label">Metric                          vanilla         harness           Delta</span>
+<span class="label">----------------------------------------------------------------------</span>
+<span class="label">  Success rate              </span> <span class="value">     64%             82%   +18 (+28%)</span>
+<span class="label">  Wall time (median, s)     </span> <span class="value">    87.3            65.1  -22.2 (-25%)</span>
+<span class="label">  Cost (median, $)          </span> <span class="value">  $0.0412        $0.0298    -28%</span>
+<span class="label">  Turns (median)            </span> <span class="value">    12.0             8.0    -33%</span>
+
+<span class="label">  Wilcoxon (wall_time): p=0.023 (sig: YES)</span></pre>
+    <p style="margin-top:16px;font-size:0.85rem;">Prior research: <a href="https://arxiv.org/abs/2601.20404" style="color:var(--accent)">AGENTS.md study</a> found 28.6% less runtime with structured agent instructions.</p>
+  </section>
+
   <footer class="footer">
     <p>MIT License &middot; Built by <a href="https://voxos.ai">Voxos.ai</a></p>
   </footer>
