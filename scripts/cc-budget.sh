@@ -27,8 +27,10 @@ case "$CMD" in
   summary)
     require_file "$SESSIONS_FILE" "sessions"
     WIN_SF="$(_path "$SESSIONS_FILE")"
+    TASK_FILE_EXISTS=false
     TOTAL_TASKS=0
     if [ -f "$TASKS_FILE" ] && [ -s "$TASKS_FILE" ]; then
+      TASK_FILE_EXISTS=true
       WIN_TF="$(_path "$TASKS_FILE")"
       TOTAL_TASKS=$(jq -s '[.[] | select(.event == "estimate")] | length' "$WIN_TF")
     fi
@@ -37,9 +39,12 @@ case "$CMD" in
       {
         total_sessions: length,
         total_duration_hours: (([.[].duration_minutes] | add // 0) / 60 | . * 10 | round / 10),
-        total_output_tokens: ([.[].estimated_output_tokens] | add // 0),
-        total_input_tokens: ([.[].estimated_input_tokens] | add // 0),
-        avg_output_tokens_per_session: (([.[].estimated_output_tokens] | add // 0) / (length | if . == 0 then 1 else . end) | round),
+        total_output_tokens: ([.[] | (.output_tokens // .estimated_output_tokens // 0)] | add // 0),
+        total_input_tokens: ([.[] | (.input_tokens // .estimated_input_tokens // 0)] | add // 0),
+        total_cache_creation: ([.[].cache_creation_tokens // 0] | add // 0),
+        total_cache_read: ([.[].cache_read_tokens // 0] | add // 0),
+        total_cost: ([.[].estimated_cost_usd // 0] | add // 0),
+        avg_output_tokens_per_session: (([.[] | (.output_tokens // .estimated_output_tokens // 0)] | add // 0) / (length | if . == 0 then 1 else . end) | round),
         avg_turns_per_session: (([.[].turn_count] | add // 0) / (length | if . == 0 then 1 else . end) | . * 10 | round / 10),
         total_compacts: ([.[].compact_count] | add // 0)
       }
@@ -49,6 +54,9 @@ case "$CMD" in
       "Total duration:  \(.total_duration_hours)h",
       "Output tokens:   \(.total_output_tokens | . / 1000 | . * 10 | round / 10)k",
       "Input tokens:    \(.total_input_tokens | . / 1000 | . * 10 | round / 10)k",
+      "Cache create:    \(.total_cache_creation | . / 1000 | . * 10 | round / 10)k",
+      "Cache read:      \(.total_cache_read | . / 1000 | . * 10 | round / 10)k",
+      "Total cost:      $\(.total_cost | . * 100 | round / 100)",
       "Avg output/sess: \(.avg_output_tokens_per_session | . / 1000 | . * 10 | round / 10)k",
       "Avg turns/sess:  \(.avg_turns_per_session)",
       "Total compacts:  \(.total_compacts)",
@@ -62,19 +70,21 @@ case "$CMD" in
     LIMIT="${1:-10}"
 
     echo "=== Last $LIMIT Sessions ==="
-    printf "%-12s  %5s  %8s  %5s  %s\n" "DATE" "MIN" "OUT_TOK" "TASKS" "PROJECTS"
-    printf "%-12s  %5s  %8s  %5s  %s\n" "------------" "-----" "--------" "-----" "--------"
+    printf "%-12s  %5s  %8s  %7s  %-16s  %5s  %s\n" "DATE" "MIN" "OUT_TOK" "COST" "MODEL" "TASKS" "PROJECTS"
+    printf "%-12s  %5s  %8s  %7s  %-16s  %5s  %s\n" "------------" "-----" "--------" "-------" "----------------" "-----" "--------"
 
     jq -s "sort_by(.started_at) | reverse | .[:$LIMIT] | reverse | .[]" "$WIN_SF" | jq -r '
       [
         (.started_at[:10] // "?"),
         (.duration_minutes | tostring),
-        ((.estimated_output_tokens / 1000 | . * 10 | round / 10 | tostring) + "k"),
+        (((.output_tokens // .estimated_output_tokens // 0) / 1000 | . * 10 | round / 10 | tostring) + "k"),
+        (if .estimated_cost_usd then ("$" + (.estimated_cost_usd | . * 100 | round / 100 | tostring)) else "-" end),
+        (.model // "unknown"),
         (.task_count | tostring),
         ((.projects_touched // []) | join(",") | if . == "" then "-" else . end)
       ] | @tsv
-    ' | while IFS=$'\t' read -r date dur tok tasks projs; do
-      printf "%-12s  %5s  %8s  %5s  %s\n" "$date" "$dur" "$tok" "$tasks" "$projs"
+    ' | while IFS=$'\t' read -r date dur tok cost model tasks projs; do
+      printf "%-12s  %5s  %8s  %7s  %-16s  %5s  %s\n" "$date" "$dur" "$tok" "$cost" "$model" "$tasks" "$projs"
     done
     ;;
 
@@ -108,6 +118,7 @@ case "$CMD" in
     printf "%-30s  %8s  %8s  %6s\n" "TASK" "EST" "ACTUAL" "RATIO"
     printf "%-30s  %8s  %8s  %6s\n" "------------------------------" "--------" "--------" "------"
 
+    # Join estimates with completions by task_id
     jq -s '
       (
         [.[] | select(.event == "estimate")] | map({(.task_id): {description: .description, estimated: .estimated_tokens}}) | add // {}
@@ -132,6 +143,7 @@ case "$CMD" in
       printf "%-30s  %8s  %8s  %6s\n" "$desc" "$est" "$act" "$ratio"
     done
 
+    # Calibration stats
     echo ""
     echo "--- Calibration ---"
     jq -s '
@@ -168,12 +180,16 @@ case "$CMD" in
       else {
         sessions: length,
         duration_minutes: ([.[].duration_minutes] | add),
-        output_tokens: ([.[].estimated_output_tokens] | add),
-        input_tokens: ([.[].estimated_input_tokens] | add),
+        output_tokens: ([.[] | (.output_tokens // .estimated_output_tokens // 0)] | add),
+        input_tokens: ([.[] | (.input_tokens // .estimated_input_tokens // 0)] | add),
+        cache_creation: ([.[].cache_creation_tokens // 0] | add),
+        cache_read: ([.[].cache_read_tokens // 0] | add),
+        total_cost: ([.[].estimated_cost_usd // 0] | add),
         turns: ([.[].turn_count] | add),
         tasks: ([.[].task_count] | add),
         compacts: ([.[].compact_count] | add),
-        projects: ([.[].projects_touched | .[]] | unique)
+        projects: ([.[].projects_touched | .[]?] | unique),
+        top_tools: ([.[].tool_counts // {} | to_entries[]] | group_by(.key) | map({key: .[0].key, count: ([.[].value] | add)}) | sort_by(-.count) | .[:5])
       } end
     ' "$WIN_SF" | jq -r '
       if .sessions == 0 then "No sessions found for this date."
@@ -182,10 +198,14 @@ case "$CMD" in
         "Duration:       \(.duration_minutes)min",
         "Output tokens:  \(.output_tokens / 1000 | . * 10 | round / 10)k",
         "Input tokens:   \(.input_tokens / 1000 | . * 10 | round / 10)k",
+        "Cache create:   \(.cache_creation / 1000 | . * 10 | round / 10)k",
+        "Cache read:     \(.cache_read / 1000 | . * 10 | round / 10)k",
+        "Total cost:     $\(.total_cost | . * 100 | round / 100)",
         "Turns:          \(.turns)",
         "Tasks:          \(.tasks)",
         "Compacts:       \(.compacts)",
-        "Projects:       \(.projects | join(", "))"
+        "Projects:       \(.projects | join(", "))",
+        "Top tools:      \(.top_tools | map("\(.key):\(.count)") | join(", "))"
       end
     '
     ;;

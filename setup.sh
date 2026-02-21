@@ -5,7 +5,7 @@
 # Usage:
 #   curl -fsSL https://raw.githubusercontent.com/voxos-ai/harness/main/setup.sh | bash
 #   — or —
-#   git clone https://github.com/voxos-ai/harness.git && cd harness && bash setup.sh
+#   git clone https://github.com/Voxos-ai-Inc/harness.git && cd harness && bash setup.sh
 #
 # Prerequisites: jq, git, bash
 
@@ -39,7 +39,7 @@ if [ ! -d "$SCRIPT_DIR/hooks" ]; then
   # Running via curl pipe — download to temp
   info "Downloading harness files..."
   TMPDIR=$(mktemp -d)
-  git clone --depth 1 https://github.com/voxos-ai/harness.git "$TMPDIR/harness" 2>/dev/null
+  git clone --depth 1 https://github.com/Voxos-ai-Inc/harness.git "$TMPDIR/harness" 2>/dev/null
   SCRIPT_DIR="$TMPDIR/harness"
 fi
 
@@ -54,7 +54,7 @@ echo ""
 echo -e "${CYAN}╔══════════════════════════════════════════╗${NC}"
 echo -e "${CYAN}║   Claude Code Harness — Setup            ║${NC}"
 echo -e "${CYAN}║   Session tracking, token budgeting,     ║${NC}"
-echo -e "${CYAN}║   skills, maintenance cadence            ║${NC}"
+echo -e "${CYAN}║   input telemetry, skills, maintenance   ║${NC}"
 echo -e "${CYAN}╚══════════════════════════════════════════╝${NC}"
 echo ""
 info "Repo root: $REPO_ROOT"
@@ -62,7 +62,7 @@ echo ""
 
 # --- Step 1: Install hooks ---
 
-info "Step 1/5: Installing hooks..."
+info "Step 1/6: Installing hooks..."
 mkdir -p "$HOOKS_DEST"
 for f in "$SCRIPT_DIR"/hooks/*.sh; do
   cp "$f" "$HOOKS_DEST/"
@@ -96,7 +96,7 @@ fi
 
 # --- Step 2: Install skills ---
 
-info "Step 2/5: Installing skills..."
+info "Step 2/6: Installing skills..."
 for skill_dir in "$SCRIPT_DIR"/skills/*/; do
   slug=$(basename "$skill_dir")
   dest="$SKILLS_DEST/$slug"
@@ -132,7 +132,7 @@ fi
 
 # --- Step 3: Configure global hooks in settings.json ---
 
-info "Step 3/5: Configuring global hooks..."
+info "Step 3/6: Configuring global hooks..."
 mkdir -p "$CLAUDE_DIR"
 
 if [ ! -f "$SETTINGS_FILE" ]; then
@@ -143,11 +143,12 @@ fi
 EXISTING_HOOKS=$(jq '.hooks // {}' "$SETTINGS_FILE" 2>/dev/null || echo '{}')
 
 NEEDS_UPDATE=false
-for event in SessionStart SessionEnd Stop; do
+for event in SessionStart SessionEnd Stop UserPromptSubmit; do
   case "$event" in
-    SessionStart) HOOK_CMD="bash ~/.claude/hooks/session-register.sh" ;;
-    SessionEnd)   HOOK_CMD="bash ~/.claude/hooks/session-end.sh" ;;
-    Stop)         HOOK_CMD="bash ~/.claude/hooks/task-check.sh" ;;
+    SessionStart)      HOOK_CMD="bash ~/.claude/hooks/session-register.sh" ;;
+    SessionEnd)        HOOK_CMD="bash ~/.claude/hooks/session-end.sh" ;;
+    Stop)              HOOK_CMD="bash ~/.claude/hooks/task-check.sh" ;;
+    UserPromptSubmit)  HOOK_CMD="bash ~/.claude/hooks/input-capture.sh" ;;
   esac
 
   HAS_HOOK=$(echo "$EXISTING_HOOKS" | jq --arg e "$event" --arg cmd "$HOOK_CMD" '
@@ -166,7 +167,8 @@ if [ "$NEEDS_UPDATE" = "true" ]; then
     .hooks = (.hooks // {}) |
     .hooks.SessionStart = ((.hooks.SessionStart // []) + [{"type": "command", "command": "bash ~/.claude/hooks/session-register.sh"}] | unique_by(.command)) |
     .hooks.SessionEnd = ((.hooks.SessionEnd // []) + [{"type": "command", "command": "bash ~/.claude/hooks/session-end.sh"}] | unique_by(.command)) |
-    .hooks.Stop = ((.hooks.Stop // []) + [{"type": "command", "command": "bash ~/.claude/hooks/task-check.sh"}] | unique_by(.command))
+    .hooks.Stop = ((.hooks.Stop // []) + [{"type": "command", "command": "bash ~/.claude/hooks/task-check.sh"}] | unique_by(.command)) |
+    .hooks.UserPromptSubmit = ((.hooks.UserPromptSubmit // []) + [{"type": "command", "command": "bash ~/.claude/hooks/input-capture.sh"}] | unique_by(.command))
   ' "$SETTINGS_FILE" > "${SETTINGS_FILE}.tmp" && mv "${SETTINGS_FILE}.tmp" "$SETTINGS_FILE"
   ok "  Hooks registered in $SETTINGS_FILE"
 else
@@ -175,7 +177,7 @@ fi
 
 # --- Step 4: Install templates ---
 
-info "Step 4/5: Installing templates..."
+info "Step 4/6: Installing templates..."
 for tmpl in CLAUDE.md MAINTENANCE.md REMINDERS.md GOTCHAS.md MILESTONES.md; do
   dest="$REPO_ROOT/$tmpl"
   if [ -f "$dest" ]; then
@@ -204,17 +206,27 @@ else
   warn "  Skipping .claude-memory/MEMORY.md (already exists)"
 fi
 
-# --- Step 5: Install analytics script ---
+# --- Step 5: Install analytics scripts ---
 
-info "Step 5/5: Installing analytics..."
+info "Step 5/6: Installing analytics..."
 mkdir -p "$SCRIPTS_DEST"
-if [ ! -f "$SCRIPTS_DEST/cc-budget.sh" ]; then
-  cp "$SCRIPT_DIR/scripts/cc-budget.sh" "$SCRIPTS_DEST/cc-budget.sh"
-  chmod +x "$SCRIPTS_DEST/cc-budget.sh"
-  ok "  Installed scripts/cc-budget.sh"
-else
-  warn "  Skipping scripts/cc-budget.sh (already exists)"
-fi
+for script in cc-budget.sh; do
+  if [ ! -f "$SCRIPTS_DEST/$script" ]; then
+    cp "$SCRIPT_DIR/scripts/$script" "$SCRIPTS_DEST/$script"
+    chmod +x "$SCRIPTS_DEST/$script"
+    ok "  Installed scripts/$script"
+  else
+    warn "  Skipping scripts/$script (already exists)"
+  fi
+done
+
+# --- Step 6: Create data directories ---
+
+info "Step 6/6: Creating data directories..."
+mkdir -p "$HOME/.claude/session-tracking"
+mkdir -p "$HOME/.claude/task-tracking"
+mkdir -p "$HOME/.claude/input-telemetry"
+ok "  Data directories ready"
 
 # --- Done ---
 
@@ -224,8 +236,9 @@ echo -e "${GREEN}║   Setup complete!                        ║${NC}"
 echo -e "${GREEN}╚══════════════════════════════════════════╝${NC}"
 echo ""
 echo "Installed:"
-echo "  .claude/hooks/          — Session tracking & task nudging"
-echo "  .claude/skills/         — Slash commands (/commit, /done, /queue, /nu, /preview)"
+echo "  .claude/hooks/          — Session tracking, task nudging, input telemetry"
+echo "  .claude/skills/         — Slash commands (/commit, /done, /queue, /nu, /preview,"
+echo "                            /code-audit, /brainstorm, /recover, /attention)"
 echo "  .claude/AGENTS.md       — Skill registry"
 echo "  .claude-memory/         — Persistent agent memory"
 echo "  scripts/cc-budget.sh    — Token budget analytics"
@@ -235,9 +248,16 @@ echo "  REMINDERS.md            — Follow-up tracker"
 echo "  GOTCHAS.md              — Operational workarounds log"
 echo "  MILESTONES.md           — Progress tracker"
 echo ""
+echo "Hooks wired:"
+echo "  SessionStart     → session-register.sh (session tracking + tab concurrency)"
+echo "  SessionEnd       → session-end.sh (transcript parsing + cost calculation)"
+echo "  Stop             → task-check.sh (task logging nudge)"
+echo "  UserPromptSubmit → input-capture.sh (input telemetry)"
+echo ""
 echo "Next steps:"
 echo "  1. Edit CLAUDE.md — fill in your project details"
 echo "  2. Start a Claude Code session — hooks will auto-register"
 echo "  3. Run 'bash scripts/cc-budget.sh summary' after a few sessions"
-echo "  4. Create custom skills with '/nu <slug> <description>'"
+echo "  4. Run 'bash ~/.claude/hooks/input-analytics.sh summary' for input stats"
+echo "  5. Create custom skills with '/nu <slug> <description>'"
 echo ""

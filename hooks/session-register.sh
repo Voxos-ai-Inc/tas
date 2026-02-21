@@ -40,4 +40,11 @@ jq -n \
     status: "active"
   }' > "$(_path "$OUTFILE")"
 
+# --- Tab concurrency tracking ---
+ACTIVE_TABS=$(grep -rl '"active"' "$TRACKING_DIR"/*.json 2>/dev/null | wc -l | tr -d ' ')
+TELE_DIR="$HOME/.claude/input-telemetry"; mkdir -p "$TELE_DIR"
+jq -nc --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" --arg ev "open" --arg sid "$SESSION_ID" \
+  --argjson tabs "$ACTIVE_TABS" '{ts:$ts,event:$ev,session_id:$sid,active_tabs:$tabs}' \
+  >> "$(_path "$TELE_DIR/concurrency.jsonl")"
+
 exit 0

@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Claude Code Harness — Session Tracking, Token Budgeting, Skills</title>
-  <meta name="description" content="An operational harness for Claude Code that adds session tracking, token budgeting, slash-command skills, and maintenance cadence to any project.">
+  <title>Claude Code Harness — Session Tracking, Token Budgeting, Input Telemetry, Skills</title>
+  <meta name="description" content="An operational harness for Claude Code that adds session tracking, token budgeting, input telemetry, slash-command skills, and maintenance cadence to any project.">
   <style>
     :root {
       --bg: #0a0a0a;
@@ -274,15 +274,15 @@
 
   <section class="hero">
     <h1>Claude Code <span>Harness</span></h1>
-    <p>Session tracking, token budgeting, slash-command skills, and maintenance cadence for any project.</p>
+    <p>Session tracking, token budgeting, input telemetry, slash-command skills, and maintenance cadence for any project.</p>
     <div class="hero-actions">
-      <a href="https://github.com/voxos-ai/harness" class="btn btn-primary">View on GitHub</a>
-      <a href="https://github.com/voxos-ai/harness#quick-start" class="btn btn-secondary">Quick Start</a>
+      <a href="https://github.com/Voxos-ai-Inc/harness" class="btn btn-primary">View on GitHub</a>
+      <a href="https://github.com/Voxos-ai-Inc/harness#quick-start" class="btn btn-secondary">Quick Start</a>
     </div>
   </section>
 
-  <div class="install" onclick="navigator.clipboard.writeText('git clone https://github.com/voxos-ai/harness.git /tmp/harness && bash /tmp/harness/setup.sh');this.classList.add('copied');setTimeout(()=>this.classList.remove('copied'),2000)">
-    git clone https://github.com/voxos-ai/harness.git /tmp/harness && bash /tmp/harness/setup.sh
+  <div class="install" onclick="navigator.clipboard.writeText('git clone https://github.com/Voxos-ai-Inc/harness.git /tmp/harness && bash /tmp/harness/setup.sh');this.classList.add('copied');setTimeout(()=>this.classList.remove('copied'),2000)">
+    git clone https://github.com/Voxos-ai-Inc/harness.git /tmp/harness && bash /tmp/harness/setup.sh
   </div>
 
   <section class="layers">
@@ -290,27 +290,27 @@
     <div class="layer-grid">
       <div class="layer-card">
         <h3>Session Tracking</h3>
-        <p>Every session auto-registered on start, summarized on end. Crashed tabs detected as orphans with resume offered.</p>
+        <p>Every session auto-registered on start, summarized on end. Crashed tabs detected as orphans with resume offered. Tab concurrency tracked.</p>
       </div>
       <div class="layer-card">
         <h3>Token Budgeting</h3>
-        <p>Estimate effort in tokens, not time. Track estimate vs. actual. <a href="https://voxos.ai/blog/token-based-effort-estimation-for-ai-agents/index.html" style="color:var(--accent)">Why tokens, not hours &rarr;</a></p>
+        <p>Estimate effort in tokens, not time. Real token counts extracted from transcripts. Per-session cost calculation. Calibration analytics.</p>
+      </div>
+      <div class="layer-card">
+        <h3>Input Telemetry</h3>
+        <p>Every prompt captured automatically. Analyze message volume, complexity, intent distribution, and tab concurrency over time.</p>
       </div>
       <div class="layer-card">
         <h3>Slash-Command Skills</h3>
-        <p>Ships with /commit, /done, /queue, /preview. Create your own with /nu. <a href="https://voxos.ai/blog/declarative-agent-programming-why-ai-age/index.html" style="color:var(--accent)">The Declarative Agent Trap &rarr;</a></p>
+        <p>Ships with /commit, /done, /queue, /preview, /code-audit, /brainstorm, /recover, /attention. Create your own with /nu.</p>
       </div>
       <div class="layer-card">
         <h3>Maintenance Cadence</h3>
-        <p>Define recurring tasks with cadences (hourly, daily). Overdue tasks surfaced at session start. <a href="https://voxos.ai/blog/the-autonomous-tpm-giving-ai-agents-recu/index.html" style="color:var(--accent)">The Autonomous TPM &rarr;</a></p>
-      </div>
-      <div class="layer-card">
-        <h3>Persistent Memory</h3>
-        <p>Key facts survive across sessions. Version-controlled in your repo. <a href="https://voxos.ai/blog/how-to-give-ai-coding-agents-long-term-m/index.html" style="color:var(--accent)">Long-term memory &rarr;</a></p>
+        <p>Define recurring tasks with cadences (hourly, daily). Overdue tasks surfaced at session start. Your agent becomes an autonomous TPM.</p>
       </div>
       <div class="layer-card">
         <h3>Prove It Loop</h3>
-        <p>Baseline &rarr; Change &rarr; Measure &rarr; Compare &rarr; Record. <a href="https://voxos.ai/blog/vibes-are-not-a-metric-measurement-drive/index.html" style="color:var(--accent)">Vibes are not a metric &rarr;</a></p>
+        <p>Baseline &rarr; Change &rarr; Measure &rarr; Compare &rarr; Record. No vibes-based development.</p>
       </div>
     </div>
   </section>
@@ -321,7 +321,11 @@
 Session start
   │
   ├─ SessionStart hook fires
-  │    └─ session-register.sh → ~/.claude/session-tracking/&lt;id&gt;.json
+  │    ├─ session-register.sh → ~/.claude/session-tracking/&lt;id&gt;.json
+  │    └─ Tab concurrency event → input-telemetry/concurrency.jsonl
+  │
+  ├─ Each user message:
+  │    └─ input-capture.sh → input-telemetry/raw.jsonl
   │
   ├─ You work, optionally logging tasks:
   │    ├─ task-log.sh estimate → returns task_id
@@ -329,7 +333,7 @@ Session start
   │    └─ task-log.sh complete → records actual effort
   │
   ├─ Session ends
-  │    ├─ session-end.sh → parses transcript, writes sessions.jsonl
+  │    ├─ session-end.sh → parses transcript, calculates cost, writes sessions.jsonl
   │    └─ task-check.sh  → nudges once if no tasks logged
   │
   └─ Later: cc-sessions.sh check
@@ -338,7 +342,7 @@ Session start
 
   <section class="analytics">
     <h2>Built-in Analytics</h2>
-    <p>Query your session and task data from the command line.</p>
+    <p>Query your session, task, and input telemetry data from the command line.</p>
     <pre>
 <span class="cmd">$ bash scripts/cc-budget.sh summary</span>
 
@@ -346,6 +350,10 @@ Session start
 <span class="label">Sessions:       </span> <span class="value">47</span>
 <span class="label">Total duration:  </span> <span class="value">23.5h</span>
 <span class="label">Output tokens:   </span> <span class="value">234.5k</span>
+<span class="label">Input tokens:    </span> <span class="value">1205.3k</span>
+<span class="label">Cache create:    </span> <span class="value">890.2k</span>
+<span class="label">Cache read:      </span> <span class="value">15420.1k</span>
+<span class="label">Total cost:      </span> <span class="value">$127.45</span>
 <span class="label">Avg output/sess: </span> <span class="value">5.0k</span>
 <span class="label">Avg turns/sess:  </span> <span class="value">8.2</span>
 <span class="label">Total compacts:  </span> <span class="value">3</span>
@@ -364,6 +372,10 @@ Session start
         <tr><td>/queue</td><td>Capture a task to QUEUE.md for a future session</td></tr>
         <tr><td>/nu</td><td>Create a new skill from a description</td></tr>
         <tr><td>/preview</td><td>Serve a markdown file as live HTML on localhost</td></tr>
+        <tr><td>/code-audit</td><td>Recursive code-path audit across all user journeys</td></tr>
+        <tr><td>/brainstorm</td><td>5-lens parallel web research for strategic decisions</td></tr>
+        <tr><td>/recover</td><td>Find and resume orphaned sessions after crashes</td></tr>
+        <tr><td>/attention</td><td>Audit frontend golden-path clarity scores</td></tr>
       </tbody>
     </table>
     <p style="text-align:center;color:var(--text-muted);margin-top:16px;font-size:0.9rem;">
@@ -388,7 +400,6 @@ Session start
 <span class="label">  Turns (median)            </span> <span class="value">    12.0             8.0    -33%</span>
 
 <span class="label">  Wilcoxon (wall_time): p=0.023 (sig: YES)</span></pre>
-    <p style="margin-top:16px;font-size:0.85rem;">Prior research: <a href="https://arxiv.org/abs/2601.20404" style="color:var(--accent)">AGENTS.md study</a> found 28.6% less runtime with structured agent instructions.</p>
   </section>
 
   <footer class="footer">

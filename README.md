@@ -1,6 +1,6 @@
 # Claude Code Harness
 
-An operational harness for [Claude Code](https://docs.anthropic.com/en/docs/claude-code) that adds session tracking, token budgeting, slash-command skills, maintenance cadence, and persistent memory to any project.
+An operational harness for [Claude Code](https://docs.anthropic.com/en/docs/claude-code) that adds session tracking, token budgeting, input telemetry, slash-command skills, maintenance cadence, and persistent memory to any project.
 
 Claude Code is powerful out of the box. The harness makes it *disciplined* — every session is tracked, every task is budgeted, every loose end is caught.
 
@@ -8,9 +8,10 @@ Claude Code is powerful out of the box. The harness makes it *disciplined* — e
 
 | Layer | What it does | Files |
 |-------|-------------|-------|
-| **Session tracking** | Auto-registers every session. Detects orphaned sessions (crashed tabs). Offers `--resume`. | `hooks/session-register.sh`, `hooks/session-end.sh`, `hooks/cc-sessions.sh` |
-| **Token budgeting** | Estimate effort in tokens, not time. Track estimate vs. actual. Calibrate over sessions. | `hooks/task-log.sh`, `hooks/task-check.sh`, `scripts/cc-budget.sh` |
-| **Skills** | Slash commands (`/commit`, `/done`, `/queue`, `/preview`). Create your own with `/nu`. | `.claude/skills/<slug>/SKILL.md` |
+| **Session tracking** | Auto-registers every session. Detects orphaned sessions (crashed tabs). Offers `--resume`. Tracks tab concurrency. | `hooks/session-register.sh`, `hooks/session-end.sh`, `hooks/cc-sessions.sh`, `hooks/cc-recover.sh` |
+| **Token budgeting** | Estimate effort in tokens, not time. Track estimate vs. actual. Calibrate over sessions. Real token counts from transcripts. Cost calculation. | `hooks/task-log.sh`, `hooks/task-check.sh`, `scripts/cc-budget.sh` |
+| **Input telemetry** | Capture every prompt. Analyze message volume, complexity, intent. Track tab concurrency over time. | `hooks/input-capture.sh`, `hooks/input-analytics.sh` |
+| **Skills** | Slash commands (`/commit`, `/done`, `/queue`, `/preview`, `/code-audit`, `/brainstorm`, `/recover`, `/attention`). Create your own with `/nu`. | `.claude/skills/<slug>/SKILL.md` |
 | **Maintenance cadence** | Recurring tasks checked at session start. Overdue tasks surfaced automatically. | `MAINTENANCE.md` |
 | **Persistent memory** | Key facts survive across sessions. Version-controlled in your repo. | `.claude-memory/MEMORY.md` |
 | **Document discipline** | Living docs vs. snapshots vs. scrap — clear rules for what gets updated and when. | `CLAUDE.md` template |
@@ -20,7 +21,7 @@ Claude Code is powerful out of the box. The harness makes it *disciplined* — e
 
 ```bash
 # Clone and install into your project
-git clone https://github.com/voxos-ai/harness.git /tmp/harness
+git clone https://github.com/Voxos-ai-Inc/harness.git /tmp/harness
 cd /path/to/your/project
 bash /tmp/harness/setup.sh
 ```
@@ -34,9 +35,10 @@ curl -fsSL https://raw.githubusercontent.com/voxos-ai/harness/main/setup.sh | ba
 The setup script:
 1. Copies hooks to `.claude/hooks/` and links them to `~/.claude/hooks/`
 2. Installs starter skills to `.claude/skills/`
-3. Registers `SessionStart`, `SessionEnd`, and `Stop` hooks in `~/.claude/settings.json`
+3. Registers `SessionStart`, `SessionEnd`, `Stop`, and `UserPromptSubmit` hooks in `~/.claude/settings.json`
 4. Creates template files (`CLAUDE.md`, `MAINTENANCE.md`, `REMINDERS.md`, `GOTCHAS.md`, `MILESTONES.md`)
 5. Sets up `.claude-memory/` for persistent agent memory
+6. Creates data directories for session tracking, task tracking, and input telemetry
 
 **Prerequisites:** `jq`, `git`, `bash`. Works on macOS, Linux, and Windows (Git Bash / MSYS2).
 
@@ -48,7 +50,11 @@ The setup script:
 Session start
   │
   ├─ SessionStart hook fires
-  │    └─ session-register.sh writes ~/.claude/session-tracking/<id>.json
+  │    ├─ session-register.sh → ~/.claude/session-tracking/<id>.json
+  │    └─ Tab concurrency event → input-telemetry/concurrency.jsonl
+  │
+  ├─ Each user message:
+  │    └─ input-capture.sh → input-telemetry/raw.jsonl
   │
   ├─ You work, optionally logging tasks:
   │    ├─ task-log.sh estimate → returns task_id
@@ -58,7 +64,8 @@ Session start
   ├─ Session ends (or tab crashes)
   │    ├─ SessionEnd hook → session-end.sh
   │    │    ├─ Marks session ended
-  │    │    ├─ Parses transcript (turns, bytes, compacts)
+  │    │    ├─ Parses transcript (real token counts, tool usage, projects)
+  │    │    ├─ Calculates estimated API cost
   │    │    └─ Appends summary to sessions.jsonl
   │    │
   │    └─ Stop hook → task-check.sh
@@ -70,7 +77,7 @@ Session start
 
 ### Token Budgeting
 
-LLMs can reason about output volume (tokens) but not wall-clock time. The harness tracks effort in tokens. For the research behind why tokens are replacing hours as the unit of estimation — from METR's agent decay curves to Devin's ACU model — see [Stop Estimating AI Work in Human-Hours](https://voxos.ai/blog/token-based-effort-estimation-for-ai-agents/index.html).
+LLMs can reason about output volume (tokens) but not wall-clock time. The harness tracks effort in tokens.
 
 ```bash
 # Estimate before starting
@@ -87,10 +94,10 @@ Query your data:
 
 ```bash
 bash scripts/cc-budget.sh summary     # Totals across all sessions
-bash scripts/cc-budget.sh sessions 5  # Last 5 sessions
+bash scripts/cc-budget.sh sessions 5  # Last 5 sessions (with cost + model)
 bash scripts/cc-budget.sh projects    # Effort by project/service
 bash scripts/cc-budget.sh accuracy    # Estimate vs. actual calibration
-bash scripts/cc-budget.sh daily       # Today's breakdown
+bash scripts/cc-budget.sh daily       # Today's breakdown (with top tools)
 ```
 
 Example output:
@@ -100,15 +107,32 @@ Example output:
 Sessions:        47
 Total duration:  23.5h
 Output tokens:   234.5k
+Input tokens:    1205.3k
+Cache create:    890.2k
+Cache read:      15420.1k
+Total cost:      $127.45
 Avg output/sess: 5.0k
 Avg turns/sess:  8.2
 Total compacts:  3
 Total tasks:     12
 ```
 
+### Input Telemetry
+
+Every user prompt is automatically captured and can be analyzed across multiple dimensions.
+
+```bash
+bash ~/.claude/hooks/input-analytics.sh summary          # Totals + tab stats
+bash ~/.claude/hooks/input-analytics.sh project myapp    # Per-project breakdown
+bash ~/.claude/hooks/input-analytics.sh recent 20        # Last 20 messages
+bash ~/.claude/hooks/input-analytics.sh trends           # Daily volume
+bash ~/.claude/hooks/input-analytics.sh dimensions       # Intent/complexity/tone analysis
+bash ~/.claude/hooks/input-analytics.sh tabs             # Tab concurrency timeline
+```
+
 ### Skills
 
-Skills are slash commands defined in `.claude/skills/<slug>/SKILL.md` — a declarative way to teach agents repeatable tasks. For how this pattern fits the broader shift from imperative to declarative agent programming, see [The Declarative Agent Trap](https://voxos.ai/blog/declarative-agent-programming-why-ai-age/index.html). The harness ships with:
+Skills are slash commands defined in `.claude/skills/<slug>/SKILL.md`. The harness ships with:
 
 | Skill | What it does |
 |-------|-------------|
@@ -117,6 +141,10 @@ Skills are slash commands defined in `.claude/skills/<slug>/SKILL.md` — a decl
 | `/queue` | Capture a task to QUEUE.md for a future session |
 | `/nu` | Create a new skill from a description |
 | `/preview` | Serve a markdown file as live HTML on localhost |
+| `/code-audit` | Recursive code-path audit across all user journeys |
+| `/brainstorm` | 5-lens parallel web research for strategic decisions |
+| `/recover` | Find and resume orphaned sessions after crashes |
+| `/attention` | Audit frontend golden-path clarity scores |
 
 Create your own:
 
@@ -128,7 +156,7 @@ This creates `.claude/skills/deploy/SKILL.md` with structured instructions that 
 
 ### Maintenance Cadence
 
-`MAINTENANCE.md` defines recurring tasks with cadences (session-start, hourly, daily). At each session start, Claude checks what's overdue and offers to run it. This turns your AI agent into an [Autonomous TPM](https://voxos.ai/blog/the-autonomous-tpm-giving-ai-agents-recu/index.html) — running recurring responsibilities without being asked:
+`MAINTENANCE.md` defines recurring tasks with cadences (session-start, hourly, daily). At each session start, Claude checks what's overdue and offers to run it:
 
 ```
 2 maintenance tasks are overdue:
@@ -144,7 +172,7 @@ Run them?
 - Environment quirks and platform-specific workarounds
 - Patterns confirmed across multiple interactions
 
-The setup script creates a directory junction so `~/.claude/projects/.../memory/` points into your repo. Memory files are version-controlled. For a deeper look at why persistent memory changes how agents work, see [How to Give AI Coding Agents Long-Term Memory](https://voxos.ai/blog/how-to-give-ai-coding-agents-long-term-m/index.html).
+The setup script creates a directory junction so `~/.claude/projects/.../memory/` points into your repo. Memory files are version-controlled.
 
 ### Document Discipline
 
@@ -160,7 +188,7 @@ The `CLAUDE.md` template establishes three document types:
 
 Every non-trivial change follows: **Baseline → Change → Measure → Compare → Record**.
 
-No vibes. No "I think it's faster." Capture the metric before, capture it after, show the delta in the commit message. See [Vibes Are Not a Metric: Measurement-Driven AI Development](https://voxos.ai/blog/vibes-are-not-a-metric-measurement-drive/index.html) for the case against gut-feel engineering with AI agents.
+No vibes. No "I think it's faster." Capture the metric before, capture it after, show the delta in the commit message.
 
 ## File Structure
 
@@ -170,17 +198,24 @@ After setup, your project gains:
 your-project/
 ├── .claude/
 │   ├── hooks/
-│   │   ├── session-register.sh   # SessionStart → track session
-│   │   ├── session-end.sh        # SessionEnd → parse transcript, write summary
+│   │   ├── session-register.sh   # SessionStart → track + tab concurrency
+│   │   ├── session-end.sh        # SessionEnd → parse transcript, cost, summary
 │   │   ├── task-check.sh         # Stop → nudge if no tasks logged
 │   │   ├── task-log.sh           # estimate/start/complete lifecycle
-│   │   └── cc-sessions.sh        # Orphan detection utility
+│   │   ├── cc-sessions.sh        # Orphan detection utility
+│   │   ├── cc-recover.sh         # Session recovery (launch in new tabs)
+│   │   ├── input-capture.sh      # UserPromptSubmit → capture prompts
+│   │   └── input-analytics.sh    # Input telemetry analytics CLI
 │   ├── skills/
 │   │   ├── commit/SKILL.md
 │   │   ├── done/SKILL.md
 │   │   ├── queue/SKILL.md
 │   │   ├── nu/SKILL.md
-│   │   └── preview/SKILL.md
+│   │   ├── preview/SKILL.md
+│   │   ├── code-audit/SKILL.md
+│   │   ├── brainstorm/SKILL.md
+│   │   ├── recover/SKILL.md
+│   │   └── attention/SKILL.md
 │   └── AGENTS.md                 # Skill registry
 ├── .claude-memory/
 │   └── MEMORY.md                 # Persistent agent memory
@@ -201,9 +236,13 @@ Global files created/modified:
 ├── hooks/ → your-project/.claude/hooks/
 ├── skills/ → your-project/.claude/skills/
 ├── session-tracking/             # Per-session JSON files
-└── task-tracking/
-    ├── tasks.jsonl               # Task events (estimate/start/complete)
-    └── sessions.jsonl            # Session summaries
+├── task-tracking/
+│   ├── tasks.jsonl               # Task events (estimate/start/complete)
+│   └── sessions.jsonl            # Session summaries (with real token counts)
+└── input-telemetry/
+    ├── raw.jsonl                 # Every user prompt captured
+    ├── analyzed.jsonl            # Dimensional classifications (after analysis)
+    └── concurrency.jsonl         # Tab open/close events
 ```
 
 ## Data Format
@@ -239,12 +278,23 @@ Global files created/modified:
   "started_at": "2026-02-20T10:00:00Z",
   "ended_at": "2026-02-20T10:45:00Z",
   "duration_minutes": 45,
-  "estimated_output_tokens": 8500,
+  "output_tokens": 8500,
+  "input_tokens": 42000,
+  "cache_creation_tokens": 35000,
+  "cache_read_tokens": 180000,
+  "estimated_cost_usd": 1.23,
   "turn_count": 12,
   "compact_count": 0,
+  "tool_counts": {"Write": 5, "Read": 12, "Bash": 3},
   "task_count": 2,
   "projects_touched": ["myproject"]
 }
+```
+
+### Input Telemetry (`~/.claude/input-telemetry/raw.jsonl`)
+
+```json
+{"ts":"2026-02-20T10:05:00Z","session_id":"abc123","project":"myproject","text":"Add auth middleware to the API","word_count":6,"char_count":30}
 ```
 
 ## Customization
@@ -271,13 +321,27 @@ Edit `MAINTENANCE.md` and add a new section following the format:
 
 Remove the `Stop` hook from `~/.claude/settings.json` if you don't want the "no tasks logged" reminder.
 
+### Disabling input telemetry
+
+Remove the `UserPromptSubmit` hook from `~/.claude/settings.json` if you don't want prompt capture.
+
+### Adjusting cost calculation
+
+Edit the pricing rates in `hooks/session-end.sh` (around line 115). Default rates are for Claude Sonnet. Adjust for your model:
+
+| Model | Input ($/1M) | Output ($/1M) |
+|-------|-------------|---------------|
+| Opus | $15 | $75 |
+| Sonnet | $3 | $15 |
+| Haiku | $0.80 | $4 |
+
 ### Multi-project setup
 
 The hooks and skills directories are symlinked from `~/.claude/` to your repo. If you work across multiple repos, you can either:
 - **Share hooks** — keep `~/.claude/hooks/` as a standalone directory (not linked to any repo)
 - **Per-repo hooks** — re-run setup in each repo; the last one wins for the symlink
 
-Task tracking data (`tasks.jsonl`, `sessions.jsonl`) is global by design — it tracks all sessions regardless of which repo they're in.
+Task tracking data (`tasks.jsonl`, `sessions.jsonl`) and input telemetry are global by design — they track all sessions regardless of which repo they're in.
 
 ## Benchmark
 
@@ -290,7 +354,7 @@ python runner.py run --label my-test --trials 3
 python compare.py my-test --by-category
 ```
 
-Prior research predicts the effect: the [AGENTS.md study](https://arxiv.org/abs/2601.20404) found 28.6% less runtime and 16.6% fewer tokens with structured agent instructions. See `bench/README.md` for full methodology.
+See `bench/README.md` for full methodology.
 
 ## Requirements
 
@@ -305,4 +369,4 @@ MIT
 
 ---
 
-Built by [Voxos.ai](https://voxos.ai). We use this harness daily to run a 70+ project monorepo with Claude Code.
+Built by [Voxos.ai](https://voxos.ai). We use this harness daily across a multi-project monorepo with Claude Code.

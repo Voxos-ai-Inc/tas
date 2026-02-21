@@ -11,6 +11,10 @@ Registry of automated skills and their data files. Skills live in `.claude/skill
 | Queue | `/queue` | Capture current task to QUEUE.md for later | On-demand |
 | New Skill | `/nu` | Scaffold a new skill from a description | On-demand |
 | Preview | `/preview` | Serve a markdown file as live HTML on localhost | On-demand |
+| Code Audit | `/code-audit` | Recursive code-path audit across all user journeys | On-demand |
+| Brainstorm | `/brainstorm` | 5-lens parallel web research for strategic decisions | On-demand |
+| Recover | `/recover` | Find and resume orphaned sessions after crashes | On-demand |
+| Attention | `/attention` | Audit frontend golden-path clarity scores | On-demand |
 
 ## Adding Skills
 

@@ -17,6 +17,8 @@
 - **Pending follow-ups**: `REMINDERS.md`
 - **Recurring maintenance**: `MAINTENANCE.md`
 - **Skills & agents**: `.claude/AGENTS.md`
+- **Token budgeting**: "Token Budgeting" section below; analytics via `scripts/cc-budget.sh`
+- **Input telemetry**: "Input Telemetry" section below; analytics via `bash ~/.claude/hooks/input-analytics.sh`
 
 ## Architecture Map
 
@@ -89,6 +91,35 @@ Do NOT log tasks for: single-line fixes, reading/exploring code, answering quest
 ### Analytics
 
 Run `bash scripts/cc-budget.sh summary|sessions|projects|accuracy|daily` for aggregated metrics.
+
+## Input Telemetry
+
+Every user prompt is captured automatically by the `UserPromptSubmit` hook. This enables analysis of how you interact with Claude Code over time.
+
+### What's Captured
+
+Each message records: timestamp, session ID, project (inferred from cwd), text, word count, character count.
+
+### Analytics
+
+```bash
+bash ~/.claude/hooks/input-analytics.sh summary           # Totals: messages, sessions, projects
+bash ~/.claude/hooks/input-analytics.sh project <slug>     # Per-project breakdown
+bash ~/.claude/hooks/input-analytics.sh recent 20          # Last 20 messages
+bash ~/.claude/hooks/input-analytics.sh trends             # Daily message volume
+bash ~/.claude/hooks/input-analytics.sh tabs               # Tab concurrency stats
+```
+
+### Session Sign-off Analysis
+
+At the end of each session, classify your messages across 4 dimensions and append to `~/.claude/input-telemetry/analyzed.jsonl`:
+
+- **intent**: feature | bugfix | deploy | research | refactor | admin | question | review | planning
+- **specificity**: 1-5 (1=vague wish, 5=exact spec with file paths)
+- **complexity**: 1-5 (1=single file, 5=multi-service orchestration)
+- **tone**: directive | collaborative | exploratory | frustrated | urgent | casual
+
+Then run `bash ~/.claude/hooks/input-analytics.sh dimensions` for distribution analysis.
 
 ## Document Maintenance
 
