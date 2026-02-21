@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+bench/workspaces/*/
+bench/results/*/
+!bench/results/.gitkeep

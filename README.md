@@ -279,6 +279,19 @@ The hooks and skills directories are symlinked from `~/.claude/` to your repo. I
 
 Task tracking data (`tasks.jsonl`, `sessions.jsonl`) is global by design — it tracks all sessions regardless of which repo they're in.
 
+## Benchmark
+
+Does the harness actually help? The `bench/` directory includes a benchmark suite to measure it. 11 tasks across three categories (bug fixes, multi-file features, refactoring) run under both conditions — vanilla Claude Code vs. harness-equipped — and compare success rate, wall time, cost, and turns with paired statistical tests.
+
+```bash
+cd bench
+pip install -r requirements.txt
+python runner.py run --label my-test --trials 3
+python compare.py my-test --by-category
+```
+
+Prior research predicts the effect: the [AGENTS.md study](https://arxiv.org/abs/2601.20404) found 28.6% less runtime and 16.6% fewer tokens with structured agent instructions. See `bench/README.md` for full methodology.
+
 ## Requirements
 
 - **Claude Code** (any version with hooks support)
