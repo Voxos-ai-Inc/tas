@@ -11,11 +11,12 @@ Claude Code is powerful out of the box. The harness makes it *disciplined* — e
 | **Session tracking** | Auto-registers every session. Detects orphaned sessions (crashed tabs). Offers `--resume`. Tracks tab concurrency. | `hooks/session-register.sh`, `hooks/session-end.sh`, `hooks/cc-sessions.sh`, `hooks/cc-recover.sh` |
 | **Token budgeting** | Estimate effort in tokens, not time. Track estimate vs. actual. Calibrate over sessions. Real token counts from transcripts. Cost calculation. | `hooks/task-log.sh`, `hooks/task-check.sh`, `scripts/cc-budget.sh` |
 | **Input telemetry** | Capture every prompt. Analyze message volume, complexity, intent. Track tab concurrency over time. | `hooks/input-capture.sh`, `hooks/input-analytics.sh` |
-| **Skills** | Slash commands (`/commit`, `/done`, `/queue`, `/preview`, `/code-audit`, `/brainstorm`, `/recover`, `/attention`). Create your own with `/nu`. | `.claude/skills/<slug>/SKILL.md` |
+| **Skills** | 15 slash commands (`/commit`, `/done`, `/queue`, `/preview`, `/code-audit`, `/brainstorm`, `/recover`, `/attention`, `/hypothesis`, `/pentest`, `/speak`, `/hn-pain-points`, `/idea-mining`, `/locales`). Create your own with `/nu`. | `.claude/skills/<slug>/SKILL.md` |
 | **Maintenance cadence** | Recurring tasks checked at session start. Overdue tasks surfaced automatically. | `MAINTENANCE.md` |
 | **Persistent memory** | Key facts survive across sessions. Version-controlled in your repo. | `.claude-memory/MEMORY.md` |
 | **Document discipline** | Living docs vs. snapshots vs. scrap — clear rules for what gets updated and when. | `CLAUDE.md` template |
-| **Prove It loop** | Baseline → Change → Measure → Compare → Record. No vibes-based development. | `CLAUDE.md` template |
+| **Hypothesis Protocol** | Hypothesis → Set A → Change → Set B → Verdict. No vibes-based development. | `CLAUDE.md` template |
+| **Security Posture** | Non-negotiable security constraints: secrets management, auth, input validation, least-privilege, audit logging. | `CLAUDE.md` template |
 
 ## Quick Start
 
@@ -145,6 +146,12 @@ Skills are slash commands defined in `.claude/skills/<slug>/SKILL.md`. The harne
 | `/brainstorm` | 5-lens parallel web research for strategic decisions |
 | `/recover` | Find and resume orphaned sessions after crashes |
 | `/attention` | Audit frontend golden-path clarity scores |
+| `/hypothesis` | Hypothesis-driven A/B testing for code changes |
+| `/pentest` | External penetration test reconnaissance |
+| `/speak` | Communication clarity drill with scoring |
+| `/hn-pain-points` | Scrape HN for trending unsolved pain points |
+| `/idea-mining` | Bulk ideation with web-search novelty filtering |
+| `/locales` | Regenerate i18n translations via i18n-locale-gen |
 
 Create your own:
 
@@ -184,11 +191,11 @@ The `CLAUDE.md` template establishes three document types:
 | **Snapshot** | `PRD.md`, `PLAN.md`, `DESIGN.md` | Never update; create new if decision changes |
 | **Scrap** | Small TODOs, stubs | Clean up during hygiene |
 
-### Prove It Loop
+### Hypothesis Protocol
 
-Every non-trivial change follows: **Baseline → Change → Measure → Compare → Record**.
+Every non-trivial change follows: **Hypothesis → Set A (Baseline) → Change → Set B (Variant) → Verdict**.
 
-No vibes. No "I think it's faster." Capture the metric before, capture it after, show the delta in the commit message.
+No vibes. State what you expect, capture artifacts before, capture them after, compare dimensions, accept or reject. The verdict goes in the commit message.
 
 ## File Structure
 
@@ -215,7 +222,13 @@ your-project/
 │   │   ├── code-audit/SKILL.md
 │   │   ├── brainstorm/SKILL.md
 │   │   ├── recover/SKILL.md
-│   │   └── attention/SKILL.md
+│   │   ├── attention/SKILL.md
+│   │   ├── hypothesis/SKILL.md
+│   │   ├── pentest/SKILL.md
+│   │   ├── speak/SKILL.md
+│   │   ├── hn-pain-points/SKILL.md
+│   │   ├── idea-mining/SKILL.md
+│   │   └── locales/SKILL.md
 │   └── AGENTS.md                 # Skill registry
 ├── .claude-memory/
 │   └── MEMORY.md                 # Persistent agent memory
@@ -224,7 +237,7 @@ your-project/
 ├── CLAUDE.md                     # Project instructions (fill in your details)
 ├── MAINTENANCE.md                # Recurring maintenance cadence
 ├── REMINDERS.md                  # Follow-up tracker
-├── GOTCHAS.md                    # Operational workarounds
+├── GOTCHAS.md                    # Operational workarounds log
 └── MILESTONES.md                 # Progress tracker
 ```
 
