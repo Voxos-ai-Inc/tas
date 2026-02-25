@@ -1,8 +1,18 @@
-# Claude Code Harness
+# TAS
 
-An operational harness for [Claude Code](https://docs.anthropic.com/en/docs/claude-code) that adds session tracking, token budgeting, input telemetry, slash-command skills, maintenance cadence, and persistent memory to any project.
+<p align="center">
+  <img src=".github/tas-logo.png" width="180" />
+</p>
 
-Claude Code is powerful out of the box. The harness makes it *disciplined* — every session is tracked, every task is budgeted, every loose end is caught.
+<p align="center">
+  <em>A whirlwind of discipline for Claude Code.</em>
+</p>
+
+Ever watched a Tasmanian devil work? It's chaos from the outside: teeth, claws, fur flying in every direction. But look closer. Every movement has a purpose. Nothing is wasted. The tornado *is* the efficiency.
+
+TAS brings that energy to Claude Code. Session tracking, token budgeting, 15 slash commands, maintenance cadence, persistent memory, all spinning at once, all under control.
+
+You don't manage TAS. You install it and let it do its thing.
 
 ## What You Get
 
@@ -14,7 +24,7 @@ Claude Code is powerful out of the box. The harness makes it *disciplined* — e
 | **Skills** | 15 slash commands (`/commit`, `/done`, `/queue`, `/preview`, `/code-audit`, `/brainstorm`, `/recover`, `/attention`, `/hypothesis`, `/pentest`, `/speak`, `/hn-pain-points`, `/idea-mining`, `/locales`). Create your own with `/nu`. | `.claude/skills/<slug>/SKILL.md` |
 | **Maintenance cadence** | Recurring tasks checked at session start. Overdue tasks surfaced automatically. | `MAINTENANCE.md` |
 | **Persistent memory** | Key facts survive across sessions. Version-controlled in your repo. | `.claude-memory/MEMORY.md` |
-| **Document discipline** | Living docs vs. snapshots vs. scrap — clear rules for what gets updated and when. | `CLAUDE.md` template |
+| **Document discipline** | Living docs vs. snapshots vs. scrap , clear rules for what gets updated and when. | `CLAUDE.md` template |
 | **Hypothesis Protocol** | Hypothesis → Set A → Change → Set B → Verdict. No vibes-based development. | `CLAUDE.md` template |
 | **Security Posture** | Non-negotiable security constraints: secrets management, auth, input validation, least-privilege, audit logging. | `CLAUDE.md` template |
 
@@ -22,15 +32,15 @@ Claude Code is powerful out of the box. The harness makes it *disciplined* — e
 
 ```bash
 # Clone and install into your project
-git clone https://github.com/Voxos-ai-Inc/harness.git /tmp/harness
+git clone https://github.com/Voxos-ai-Inc/tas.git /tmp/tas
 cd /path/to/your/project
-bash /tmp/harness/setup.sh
+bash /tmp/tas/setup.sh
 ```
 
 Or run directly:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/voxos-ai/harness/main/setup.sh | bash
+curl -fsSL https://raw.githubusercontent.com/Voxos-ai-Inc/tas/main/setup.sh | bash
 ```
 
 The setup script:
@@ -78,7 +88,7 @@ Session start
 
 ### Token Budgeting
 
-LLMs can reason about output volume (tokens) but not wall-clock time. The harness tracks effort in tokens.
+LLMs can reason about output volume (tokens) but not wall-clock time. TAS tracks effort in tokens.
 
 ```bash
 # Estimate before starting
@@ -133,7 +143,7 @@ bash ~/.claude/hooks/input-analytics.sh tabs             # Tab concurrency timel
 
 ### Skills
 
-Skills are slash commands defined in `.claude/skills/<slug>/SKILL.md`. The harness ships with:
+Skills are slash commands defined in `.claude/skills/<slug>/SKILL.md`. TAS ships with:
 
 | Skill | What it does |
 |-------|-------------|
@@ -314,7 +324,7 @@ Global files created/modified:
 
 ### Adding your own skills
 
-1. Run `/nu <slug> <description>` — or manually create `.claude/skills/<slug>/SKILL.md`
+1. Run `/nu <slug> <description>` , or manually create `.claude/skills/<slug>/SKILL.md`
 2. Register it in `.claude/AGENTS.md`
 3. Use it with `/<slug>` in any session
 
@@ -351,14 +361,14 @@ Edit the pricing rates in `hooks/session-end.sh` (around line 115). Default rate
 ### Multi-project setup
 
 The hooks and skills directories are symlinked from `~/.claude/` to your repo. If you work across multiple repos, you can either:
-- **Share hooks** — keep `~/.claude/hooks/` as a standalone directory (not linked to any repo)
-- **Per-repo hooks** — re-run setup in each repo; the last one wins for the symlink
+- **Share hooks** , keep `~/.claude/hooks/` as a standalone directory (not linked to any repo)
+- **Per-repo hooks** , re-run setup in each repo; the last one wins for the symlink
 
-Task tracking data (`tasks.jsonl`, `sessions.jsonl`) and input telemetry are global by design — they track all sessions regardless of which repo they're in.
+Task tracking data (`tasks.jsonl`, `sessions.jsonl`) and input telemetry are global by design , they track all sessions regardless of which repo they're in.
 
 ## Benchmark
 
-Does the harness actually help? The `bench/` directory includes a benchmark suite to measure it. 11 tasks across three categories (bug fixes, multi-file features, refactoring) run under both conditions — vanilla Claude Code vs. harness-equipped — and compare success rate, wall time, cost, and turns with paired statistical tests.
+Does TAS actually help? The `bench/` directory includes a benchmark suite to measure it. 11 tasks across three categories (bug fixes, multi-file features, refactoring) run under both conditions , vanilla Claude Code vs. TAS-equipped , and compare success rate, wall time, cost, and turns with paired statistical tests.
 
 ```bash
 cd bench
@@ -372,9 +382,16 @@ See `bench/README.md` for full methodology.
 ## Requirements
 
 - **Claude Code** (any version with hooks support)
-- **jq** — JSON processor ([install](https://jqlang.github.io/jq/download/))
-- **bash** — works with bash 4+ on macOS/Linux, Git Bash on Windows
-- **git** — for the setup script and version control of memory/hooks
+- **jq** , JSON processor ([install](https://jqlang.github.io/jq/download/))
+- **bash** , works with bash 4+ on macOS/Linux, Git Bash on Windows
+- **git** , for the setup script and version control of memory/hooks
+
+
+## FAQ
+
+**What does TAS stand for?**
+
+It's named after the Tasmanian devil. But if you need a backronym for a slide deck: **T**racking, **A**utomation & **S**kills.
 
 ## License
 
@@ -382,4 +399,4 @@ MIT
 
 ---
 
-Built by [Voxos.ai](https://voxos.ai). We use this harness daily across a multi-project monorepo with Claude Code.
+Built by [Voxos.ai](https://voxos.ai). We use TAS daily across a multi-project monorepo with Claude Code.
