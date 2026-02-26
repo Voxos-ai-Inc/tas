@@ -2,16 +2,10 @@
 # Claude Code session tracking utility
 # Usage: cc-sessions.sh [check|list|clean]
 
+source "$(dirname "$0")/utils.sh"
 TRACKING_DIR="$HOME/.claude/session-tracking"
 shopt -s nullglob
 
-# Cross-platform jq wrapper: converts paths for Windows/MSYS if needed
-_path() { command -v cygpath >/dev/null 2>&1 && cygpath -w "$1" || echo "$1"; }
-jqf() {
-  local file="${@: -1}"
-  local args=("${@:1:$#-1}")
-  jq "${args[@]}" "$(_path "$file")"
-}
 
 cmd_check() {
   local found=0
@@ -21,14 +15,14 @@ cmd_check() {
   for f in "${files[@]}"; do
     [ ! -f "$f" ] && continue
     local status
-    status=$(jqf -r '.status' "$f")
+    status=$(_jqf -r '.status' "$f")
     [ "$status" != "active" ] && continue
 
     local pid
-    pid=$(jqf -r '.pid' "$f")
+    pid=$(_jqf -r '.pid' "$f")
     if ! kill -0 "$pid" 2>/dev/null; then
       found=$((found + 1))
-      results+="$(jqf -r '
+      results+="$(_jqf -r '
         "  Session: \(.session_id)\n" +
         "  CWD:     \(.cwd)\n" +
         "  Model:   \(.model)\n" +
@@ -57,11 +51,11 @@ cmd_list() {
   for f in "${files[@]}"; do
     [ ! -f "$f" ] && continue
     local pid
-    pid=$(jqf -r '.pid' "$f")
+    pid=$(_jqf -r '.pid' "$f")
     local alive="dead"
     kill -0 "$pid" 2>/dev/null && alive="alive"
 
-    jqf -r --arg alive "$alive" '
+    _jqf -r --arg alive "$alive" '
       "\(.status | if . == "active" then "●" else "○" end) \(.session_id[0:8])  \(.model | .[0:12])  \(.started_at)  pid=\(.pid)(\($alive))  \(.cwd)"
     ' "$f"
   done
@@ -75,7 +69,7 @@ cmd_clean() {
   for f in "${files[@]}"; do
     [ ! -f "$f" ] && continue
     local status
-    status=$(jqf -r '.status' "$f")
+    status=$(_jqf -r '.status' "$f")
     if [ "$status" = "ended" ]; then
       rm "$f"
       count=$((count + 1))
@@ -89,10 +83,10 @@ cmd_clean() {
   for f in "${files[@]}"; do
     [ ! -f "$f" ] && continue
     local status
-    status=$(jqf -r '.status' "$f")
+    status=$(_jqf -r '.status' "$f")
     [ "$status" != "active" ] && continue
     local pid
-    pid=$(jqf -r '.pid' "$f")
+    pid=$(_jqf -r '.pid' "$f")
     if ! kill -0 "$pid" 2>/dev/null; then
       rm "$f"
       count=$((count + 1))

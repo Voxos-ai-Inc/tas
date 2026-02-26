@@ -3,6 +3,7 @@
 # Appends one JSONL line per user message. Must be fast and silent.
 # Wired to: hooks.UserPromptSubmit in ~/.claude/settings.json
 
+source "$(dirname "$0")/utils.sh"
 INPUT=$(cat)
 
 # Extract fields
@@ -15,8 +16,6 @@ if [ -z "$PROMPT" ] || [ "$PROMPT" = "null" ]; then
   exit 0
 fi
 
-# Cross-platform: cygpath for Windows/MSYS, passthrough otherwise
-_path() { command -v cygpath >/dev/null 2>&1 && cygpath -w "$1" || echo "$1"; }
 
 # Compute metrics
 CHAR_COUNT=${#PROMPT}

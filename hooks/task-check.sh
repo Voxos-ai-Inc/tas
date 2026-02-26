@@ -2,6 +2,7 @@
 # Stop hook: nudges Claude to log tasks if none were recorded for this session.
 # Blocks once per session (temp marker file). Second attempt always passes.
 # Wired to: hooks.Stop in ~/.claude/settings.json
+source "$(dirname "$0")/utils.sh"
 
 INPUT=$(cat)
 SESSION_ID=$(echo "$INPUT" | jq -r '.session_id')
@@ -11,7 +12,6 @@ TASKS_FILE="$TRACKING_DIR/tasks.jsonl"
 NUDGE_MARKER="/tmp/.nudged_${SESSION_ID}"
 
 # Cross-platform: cygpath for Windows/MSYS, passthrough otherwise
-_path() { command -v cygpath >/dev/null 2>&1 && cygpath -w "$1" || echo "$1"; }
 
 # If already nudged once this session, allow through
 if [ -f "$NUDGE_MARKER" ]; then

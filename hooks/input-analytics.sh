@@ -2,6 +2,7 @@
 # Input telemetry analytics CLI
 # Usage: input-analytics.sh {summary|project <slug>|recent [N]|trends|dimensions|tabs}
 
+source "$(dirname "$0")/utils.sh"
 set -euo pipefail
 
 DATA_DIR="$HOME/.claude/input-telemetry"
@@ -10,7 +11,6 @@ ANALYZED_FILE="$DATA_DIR/analyzed.jsonl"
 CONCURRENCY_FILE="$DATA_DIR/concurrency.jsonl"
 
 # Cross-platform path conversion
-_path() { command -v cygpath >/dev/null 2>&1 && cygpath -w "$1" || echo "$1"; }
 
 require_file() {
   local f="$1" label="$2"

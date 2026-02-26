@@ -6,13 +6,12 @@
 #   task-log.sh complete <session_id> <task_id> <actual_tokens_est> <files_changed> [commit_hash]
 
 set -euo pipefail
+source "$(dirname "$0")/utils.sh"
 
 TRACKING_DIR="$HOME/.claude/task-tracking"
 TASKS_FILE="$TRACKING_DIR/tasks.jsonl"
 mkdir -p "$TRACKING_DIR"
 
-# Cross-platform: cygpath for Windows/MSYS, passthrough otherwise
-_path() { command -v cygpath >/dev/null 2>&1 && cygpath -w "$1" || echo "$1"; }
 
 CMD="${1:-}"
 shift || true

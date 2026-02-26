@@ -10,6 +10,7 @@
 # Prerequisites: jq, git, bash
 
 set -euo pipefail
+# Cross-platform readlink -f_readlink_f() { _readlink_f "$1" 2>/dev/null || realpath "$1" 2>/dev/null || echo "$1"; }
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -71,7 +72,7 @@ done
 ok "  Hooks installed to $HOOKS_DEST"
 
 # Create symlink/junction from ~/.claude/hooks → repo hooks
-if [ ! -e "$CLAUDE_DIR/hooks" ] || [ "$(readlink -f "$CLAUDE_DIR/hooks" 2>/dev/null)" != "$(readlink -f "$HOOKS_DEST" 2>/dev/null)" ]; then
+if [ ! -e "$CLAUDE_DIR/hooks" ] || [ "$(_readlink_f "$CLAUDE_DIR/hooks" 2>/dev/null)" != "$(_readlink_f "$HOOKS_DEST" 2>/dev/null)" ]; then
   # Backup existing hooks if any
   if [ -d "$CLAUDE_DIR/hooks" ] && [ ! -L "$CLAUDE_DIR/hooks" ]; then
     warn "  Backing up existing ~/.claude/hooks to ~/.claude/hooks.bak"
@@ -110,7 +111,7 @@ for skill_dir in "$SCRIPT_DIR"/skills/*/; do
 done
 
 # Link skills to ~/.claude/skills
-if [ ! -e "$CLAUDE_DIR/skills" ] || [ "$(readlink -f "$CLAUDE_DIR/skills" 2>/dev/null)" != "$(readlink -f "$SKILLS_DEST" 2>/dev/null)" ]; then
+if [ ! -e "$CLAUDE_DIR/skills" ] || [ "$(_readlink_f "$CLAUDE_DIR/skills" 2>/dev/null)" != "$(_readlink_f "$SKILLS_DEST" 2>/dev/null)" ]; then
   if [ -d "$CLAUDE_DIR/skills" ] && [ ! -L "$CLAUDE_DIR/skills" ]; then
     warn "  Backing up existing ~/.claude/skills to ~/.claude/skills.bak"
     mv "$CLAUDE_DIR/skills" "$CLAUDE_DIR/skills.bak"

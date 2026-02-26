@@ -2,14 +2,13 @@
 # Analytics CLI for token budgeting system
 # Usage: cc-budget.sh {summary|sessions|projects|accuracy|daily} [args]
 
+# Source shared utils (try installed location, then repo layout)_HOOKS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.claude/hooks" 2>/dev/null && pwd)"   || _HOOKS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../hooks" 2>/dev/null && pwd)"if [ -f "$_HOOKS_DIR/utils.sh" ]; then  source "$_HOOKS_DIR/utils.sh"else  _path() { command -v cygpath >/dev/null 2>&1 && cygpath -w "$1" || echo "$1"; }fi
 set -euo pipefail
 
 TRACKING_DIR="$HOME/.claude/task-tracking"
 TASKS_FILE="$TRACKING_DIR/tasks.jsonl"
 SESSIONS_FILE="$TRACKING_DIR/sessions.jsonl"
 
-# Cross-platform path conversion
-_path() { command -v cygpath >/dev/null 2>&1 && cygpath -w "$1" || echo "$1"; }
 
 # Check file exists and has content
 require_file() {

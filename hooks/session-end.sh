@@ -2,12 +2,11 @@
 # Hook: SessionEnd — marks session as ended, parses transcript, writes summary
 # Wired to: hooks.SessionEnd in ~/.claude/settings.json
 
+source "$(dirname "$0")/utils.sh"
 INPUT=$(cat)
 SESSION_ID=$(echo "$INPUT" | jq -r '.session_id')
 REASON=$(echo "$INPUT" | jq -r '.reason // "unknown"')
 
-# Cross-platform: cygpath for Windows/MSYS, passthrough otherwise
-_path() { command -v cygpath >/dev/null 2>&1 && cygpath -w "$1" || echo "$1"; }
 
 SESSION_FILE="$HOME/.claude/session-tracking/$SESSION_ID.json"
 
@@ -21,7 +20,7 @@ if [ -f "$SESSION_FILE" ]; then
 fi
 
 # --- Phase 1b: Tab concurrency tracking ---
-ACTIVE_TABS=$(grep -rl '"active"' "$HOME/.claude/session-tracking"/*.json 2>/dev/null | wc -l | tr -d ' ')
+ACTIVE_TABS=$(_count_active_sessions "$HOME/.claude/session-tracking")
 TELE_DIR="$HOME/.claude/input-telemetry"; mkdir -p "$TELE_DIR"
 ENDED_AT="${ENDED_AT:-$(date -u +%Y-%m-%dT%H:%M:%SZ)}"
 jq -nc --arg ts "$ENDED_AT" --arg ev "close" --arg sid "$SESSION_ID" \
@@ -119,8 +118,8 @@ ESTIMATED_COST=$(echo "$INPUT_TOKENS $OUTPUT_TOKENS $CACHE_CREATION_TOKENS $CACH
 # Compute duration in minutes
 DURATION_MINUTES=0
 if [ -n "$STARTED_AT" ] && [ -n "$ENDED_AT" ]; then
-  START_EPOCH=$(date -d "$STARTED_AT" +%s 2>/dev/null || echo 0)
-  END_EPOCH=$(date -d "$ENDED_AT" +%s 2>/dev/null || echo 0)
+  START_EPOCH=$(_date_epoch "$STARTED_AT")
+  END_EPOCH=$(_date_epoch "$ENDED_AT")
   if [ "$START_EPOCH" -gt 0 ] && [ "$END_EPOCH" -gt 0 ]; then
     DURATION_MINUTES=$(( (END_EPOCH - START_EPOCH) / 60 ))
   fi

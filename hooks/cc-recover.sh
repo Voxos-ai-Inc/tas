@@ -2,23 +2,17 @@
 # Claude Code session recovery utility
 # Usage: cc-recover.sh [list|launch <session_id>|launch-all <id1> <id2> ...|clean <id1> <id2> ...]
 
+source "$(dirname "$0")/utils.sh"
 TRACKING_DIR="$HOME/.claude/session-tracking"
 shopt -s nullglob
 
-# Cross-platform path conversion
-_path() { command -v cygpath >/dev/null 2>&1 && cygpath -w "$1" || echo "$1"; }
 
-jqf() {
-  local file="${@: -1}"
-  local args=("${@:1:$#-1}")
-  jq "${args[@]}" "$(_path "$file")"
-}
 
 # Get transcript last-modified epoch, or 0 if missing
 transcript_epoch() {
   local transcript="$1"
   if [ -f "$transcript" ]; then
-    stat -c %Y "$transcript" 2>/dev/null || echo "0"
+    _stat_mtime "$transcript"
   else
     echo "0"
   fi
@@ -28,7 +22,7 @@ transcript_epoch() {
 transcript_size() {
   local transcript="$1"
   if [ -f "$transcript" ]; then
-    stat -c %s "$transcript" 2>/dev/null || echo "0"
+    _stat_size "$transcript"
   else
     echo "0"
   fi
@@ -54,15 +48,15 @@ cmd_list() {
     [ ! -f "$f" ] && continue
 
     local status
-    status=$(jqf -r '.status' "$f")
+    status=$(_jqf -r '.status' "$f")
     [ "$status" != "active" ] && continue
 
     local pid
-    pid=$(jqf -r '.pid' "$f")
+    pid=$(_jqf -r '.pid' "$f")
     # Session is orphaned if PID is dead
     if ! kill -0 "$pid" 2>/dev/null; then
       local transcript
-      transcript=$(jqf -r '.transcript' "$f")
+      transcript=$(_jqf -r '.transcript' "$f")
       # Convert Windows path to Unix for stat if needed
       local transcript_unix
       transcript_unix=$(command -v cygpath >/dev/null 2>&1 && cygpath -u "$transcript" 2>/dev/null || echo "$transcript")
@@ -74,7 +68,7 @@ cmd_list() {
       hsize=$(human_size "$size")
 
       # Enrich the session JSON with transcript metadata
-      results=$(echo "$results" | jq --argjson session "$(jqf '.' "$f")" \
+      results=$(echo "$results" | jq --argjson session "$(_jqf '.' "$f")" \
         --arg last_active_epoch "$epoch" \
         --arg transcript_bytes "$size" \
         --arg transcript_human "$hsize" \
@@ -130,7 +124,7 @@ cmd_clean() {
       local now
       now=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
       local tmp
-      tmp=$(jqf --arg now "$now" '.status = "ended" | .ended_at = $now | .end_reason = "recovered-dismissed"' "$f")
+      tmp=$(_jqf --arg now "$now" '.status = "ended" | .ended_at = $now | .end_reason = "recovered-dismissed"' "$f")
       echo "$tmp" > "$f"
       count=$((count + 1))
     fi

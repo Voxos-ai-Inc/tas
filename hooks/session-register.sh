@@ -2,6 +2,8 @@
 # Hook: SessionStart — registers active session in tracking directory
 # Wired to: hooks.SessionStart in ~/.claude/settings.json
 
+source "$(dirname "$0")/utils.sh"
+source "$(dirname "$0")/utils.sh"
 INPUT=$(cat)
 SESSION_ID=$(echo "$INPUT" | jq -r '.session_id')
 CWD=$(echo "$INPUT" | jq -r '.cwd')
@@ -17,8 +19,6 @@ CC_PID=$PPID
 
 OUTFILE="$TRACKING_DIR/$SESSION_ID.json"
 
-# Cross-platform: cygpath for Windows/MSYS, passthrough otherwise
-_path() { command -v cygpath >/dev/null 2>&1 && cygpath -w "$1" || echo "$1"; }
 
 jq -n \
   --arg sid "$SESSION_ID" \
@@ -41,7 +41,7 @@ jq -n \
   }' > "$(_path "$OUTFILE")"
 
 # --- Tab concurrency tracking ---
-ACTIVE_TABS=$(grep -rl '"active"' "$TRACKING_DIR"/*.json 2>/dev/null | wc -l | tr -d ' ')
+ACTIVE_TABS=$(_count_active_sessions "$TRACKING_DIR")
 TELE_DIR="$HOME/.claude/input-telemetry"; mkdir -p "$TELE_DIR"
 jq -nc --arg ts "$(date -u +%Y-%m-%dT%H:%M:%SZ)" --arg ev "open" --arg sid "$SESSION_ID" \
   --argjson tabs "$ACTIVE_TABS" '{ts:$ts,event:$ev,session_id:$sid,active_tabs:$tabs}' \
