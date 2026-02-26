@@ -79,9 +79,6 @@ results/<label>/
 └── results.json     # Per-trial results with all metrics
 ```
 
-### Example Output
-
-```
 === baseline-v1: Vanilla vs Harness ===
 
 Metric                           vanilla          harness            Delta

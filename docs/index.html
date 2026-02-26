@@ -301,8 +301,8 @@
         <p>Every prompt captured automatically. Analyze message volume, complexity, intent distribution, and tab concurrency over time.</p>
       </div>
       <div class="layer-card">
-        <h3>15 Slash-Command Skills</h3>
-        <p>Ships with /commit, /done, /queue, /preview, /code-audit, /brainstorm, /recover, /attention, /hypothesis, /pentest, /speak, /hn-pain-points, /idea-mining, /locales. Create your own with /nu.</p>
+        <h3>10 Slash-Command Skills</h3>
+        <p>Ships with /done, /queue, /preview, /code-audit, /brainstorm, /recover, /attention, /hypothesis, /pentest, /idea-mining. Create your own with /nu.</p>
       </div>
       <div class="layer-card">
         <h3>Maintenance Cadence</h3>
@@ -371,8 +371,6 @@ Session start
         <tr><th>Command</th><th>Description</th></tr>
       </thead>
       <tbody>
-        <tr><td>/commit</td><td>Stage diffs, generate commit message, commit</td></tr>
-        <tr><td>/done</td><td>Check if all session work is complete</td></tr>
         <tr><td>/queue</td><td>Capture a task to QUEUE.md for a future session</td></tr>
         <tr><td>/nu</td><td>Create a new skill from a description</td></tr>
         <tr><td>/preview</td><td>Serve a markdown file as live HTML on localhost</td></tr>
@@ -380,43 +378,4 @@ Session start
         <tr><td>/brainstorm</td><td>5-lens parallel web research for strategic decisions</td></tr>
         <tr><td>/recover</td><td>Find and resume orphaned sessions after crashes</td></tr>
         <tr><td>/attention</td><td>Audit frontend golden-path clarity scores</td></tr>
-        <tr><td>/hypothesis</td><td>Hypothesis-driven A/B testing for code changes</td></tr>
-        <tr><td>/pentest</td><td>External penetration test reconnaissance</td></tr>
-        <tr><td>/speak</td><td>Communication clarity drill with scoring</td></tr>
-        <tr><td>/hn-pain-points</td><td>Scrape HN for trending unsolved pain points</td></tr>
         <tr><td>/idea-mining</td><td>Bulk ideation with web-search novelty filtering</td></tr>
-        <tr><td>/locales</td><td>Regenerate i18n translations via i18n-locale-gen</td></tr>
-      </tbody>
-    </table>
-    <p style="text-align:center;color:var(--text-muted);margin-top:16px;font-size:0.9rem;">
-      Create your own: <code style="color:var(--accent);background:var(--code-bg);padding:2px 8px;border-radius:4px;">/nu deploy "Build, deploy to staging, invalidate CDN"</code>
-    </p>
-  </section>
-
-  <section class="analytics" style="padding-top:20px;">
-    <h2>Benchmark</h2>
-    <p>Does the harness actually help? Measure it. 11 tasks, two conditions, paired statistical tests.</p>
-    <pre>
-<span class="cmd">$ python runner.py run --label baseline --trials 3</span>
-<span class="cmd">$ python compare.py baseline --by-category</span>
-
-<span class="label">=== baseline: Vanilla vs Harness ===</span>
-
-<span class="label">Metric                          vanilla         harness           Delta</span>
-<span class="label">----------------------------------------------------------------------</span>
-<span class="label">  Success rate              </span> <span class="value">     64%             82%   +18 (+28%)</span>
-<span class="label">  Wall time (median, s)     </span> <span class="value">    87.3            65.1  -22.2 (-25%)</span>
-<span class="label">  Cost (median, $)          </span> <span class="value">  $0.0412        $0.0298    -28%</span>
-<span class="label">  Turns (median)            </span> <span class="value">    12.0             8.0    -33%</span>
-
-<span class="label">  Wilcoxon (wall_time): p=0.023 (sig: YES)</span></pre>
-  </section>
-
-  <footer class="footer">
-    <p>MIT License &middot; Built by <a href="https://voxos.ai">Voxos.ai</a></p>
-  </footer>
-
-</div>
-
-</body>
-</html>

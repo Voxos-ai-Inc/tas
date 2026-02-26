@@ -182,8 +182,5 @@ jq -nc \
     cwd: $cwd
   }' >> "$(_path "$SESSIONS_FILE")"
 
-# Telemetry submission (best-effort, silent on failure)
-SUBMIT_SCRIPT="$(dirname "$0")/telemetry-submit.sh"
-[ -f "$SUBMIT_SCRIPT" ] && bash "$SUBMIT_SCRIPT" "$SESSION_ID" 2>/dev/null || true
 
 exit 0

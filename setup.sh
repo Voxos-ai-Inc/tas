@@ -62,7 +62,7 @@ echo ""
 
 # --- Step 1: Install hooks ---
 
-info "Step 1/7: Installing hooks..."
+info "Step 1/6: Installing hooks..."
 mkdir -p "$HOOKS_DEST"
 for f in "$SCRIPT_DIR"/hooks/*.sh; do
   cp "$f" "$HOOKS_DEST/"
@@ -96,7 +96,7 @@ fi
 
 # --- Step 2: Install skills ---
 
-info "Step 2/7: Installing skills..."
+info "Step 2/6: Installing skills..."
 for skill_dir in "$SCRIPT_DIR"/skills/*/; do
   slug=$(basename "$skill_dir")
   dest="$SKILLS_DEST/$slug"
@@ -132,7 +132,7 @@ fi
 
 # --- Step 3: Configure global hooks in settings.json ---
 
-info "Step 3/7: Configuring global hooks..."
+info "Step 3/6: Configuring global hooks..."
 mkdir -p "$CLAUDE_DIR"
 
 if [ ! -f "$SETTINGS_FILE" ]; then
@@ -177,7 +177,7 @@ fi
 
 # --- Step 4: Install templates ---
 
-info "Step 4/7: Installing templates..."
+info "Step 4/6: Installing templates..."
 for tmpl in CLAUDE.md MAINTENANCE.md REMINDERS.md GOTCHAS.md MILESTONES.md; do
   dest="$REPO_ROOT/$tmpl"
   if [ -f "$dest" ]; then
@@ -208,7 +208,7 @@ fi
 
 # --- Step 5: Install analytics scripts ---
 
-info "Step 5/7: Installing analytics..."
+info "Step 5/6: Installing analytics..."
 mkdir -p "$SCRIPTS_DEST"
 for script in cc-budget.sh; do
   if [ ! -f "$SCRIPTS_DEST/$script" ]; then
@@ -222,28 +222,12 @@ done
 
 # --- Step 6: Create data directories ---
 
-info "Step 6/7: Creating data directories..."
+info "Step 6/6: Creating data directories..."
 mkdir -p "$HOME/.claude/session-tracking"
 mkdir -p "$HOME/.claude/task-tracking"
 mkdir -p "$HOME/.claude/input-telemetry"
 ok "  Data directories ready"
 
-# --- Step 7: Optional telemetry configuration ---
-
-info "Step 7/7: Telemetry (optional)"
-echo "  The harness can submit session telemetry to Voxos for BI analytics."
-echo "  You choose exactly which data categories to share."
-echo -n "  Configure telemetry now? [y/N] "
-read -r CONFIGURE_TELEMETRY
-if [ "$CONFIGURE_TELEMETRY" = "y" ] || [ "$CONFIGURE_TELEMETRY" = "Y" ]; then
-  if [ -f "$HOOKS_DEST/harness-configure.sh" ]; then
-    bash "$HOOKS_DEST/harness-configure.sh" || warn "Telemetry configuration skipped."
-  else
-    warn "  harness-configure.sh not found. Run it manually later."
-  fi
-else
-  ok "  Skipped. Run 'bash ~/.claude/hooks/harness-configure.sh' later to configure."
-fi
 
 # --- Done ---
 
@@ -254,10 +238,7 @@ echo -e "${GREEN}╚════════════════════
 echo ""
 echo "Installed:"
 echo "  .claude/hooks/          — Session tracking, task nudging, input telemetry"
-echo "  .claude/skills/         — Slash commands (/commit, /done, /queue, /nu, /preview,"
-echo "                            /code-audit, /brainstorm, /recover, /attention,"
-echo "                            /hypothesis, /pentest, /speak, /hn-pain-points,"
-echo "                            /idea-mining, /locales)"
+echo "  .claude/skills/         — Slash commands (/done, /queue, /nu, /preview,"echo "                            /code-audit, /brainstorm, /recover, /attention,"echo "                            /hypothesis, /pentest, /idea-mining)"
 echo "  .claude/AGENTS.md       — Skill registry"
 echo "  .claude-memory/         — Persistent agent memory"
 echo "  scripts/cc-budget.sh    — Token budget analytics"
@@ -269,7 +250,7 @@ echo "  MILESTONES.md           — Progress tracker"
 echo ""
 echo "Hooks wired:"
 echo "  SessionStart     → session-register.sh (session tracking + tab concurrency)"
-echo "  SessionEnd       → session-end.sh (transcript parsing + cost + telemetry submit)"
+echo "  SessionEnd       → session-end.sh (transcript parsing + cost)"
 echo "  Stop             → task-check.sh (task logging nudge)"
 echo "  UserPromptSubmit → input-capture.sh (input telemetry)"
 echo ""
@@ -279,5 +260,4 @@ echo "  2. Start a Claude Code session — hooks will auto-register"
 echo "  3. Run 'bash scripts/cc-budget.sh summary' after a few sessions"
 echo "  4. Run 'bash ~/.claude/hooks/input-analytics.sh summary' for input stats"
 echo "  5. Create custom skills with '/nu <slug> <description>'"
-echo "  6. Configure telemetry with 'bash ~/.claude/hooks/harness-configure.sh'"
 echo ""

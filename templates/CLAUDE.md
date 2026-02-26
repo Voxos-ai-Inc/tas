@@ -10,7 +10,6 @@
 
 ## Knowledge Map
 
-- **Build / deploy / test**: `MAKE.md`
 - **Operational workarounds**: `GOTCHAS.md`
 - **Project milestones**: `MILESTONES.md`
 - **Agent memory**: `.claude-memory/MEMORY.md`

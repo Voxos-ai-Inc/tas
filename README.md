@@ -10,7 +10,7 @@
 
 Ever watched a Tasmanian devil work? It's chaos from the outside: teeth, claws, fur flying in every direction. But look closer. Every movement has a purpose. Nothing is wasted. The tornado *is* the efficiency.
 
-TAS brings that energy to Claude Code. Session tracking, token budgeting, 11 slash commands, maintenance cadence, persistent memory, all spinning at once, all under control.
+TAS brings that energy to Claude Code. Session tracking, token budgeting, 10 slash commands, maintenance cadence, persistent memory, all spinning at once, all under control.
 
 You don't manage TAS. You install it and let it do its thing.
 
@@ -21,7 +21,7 @@ You don't manage TAS. You install it and let it do its thing.
 | **Session tracking** | Auto-registers every session. Detects orphaned sessions (crashed tabs). Offers `--resume`. Tracks tab concurrency. | `hooks/session-register.sh`, `hooks/session-end.sh`, `hooks/cc-sessions.sh`, `hooks/cc-recover.sh` |
 | **Token budgeting** | Estimate effort in tokens, not time. Track estimate vs. actual. Calibrate over sessions. Real token counts from transcripts. Cost calculation. | `hooks/task-log.sh`, `hooks/task-check.sh`, `scripts/cc-budget.sh` |
 | **Input telemetry** | Capture every prompt. Analyze message volume, complexity, intent. Track tab concurrency over time. | `hooks/input-capture.sh`, `hooks/input-analytics.sh` |
-| **Skills** | 11 slash commands (`/commit`, `/done`, `/queue`, `/preview`, `/code-audit`, `/brainstorm`, `/recover`, `/attention`, `/pentest`, `/idea-mining`). Create your own with `/nu`. | `.claude/skills/<slug>/SKILL.md` |
+| **Skills** | 10 slash commands (`/done`, `/queue`, `/preview`, `/code-audit`, `/brainstorm`, `/recover`, `/attention`, `/pentest`, `/idea-mining`). Create your own with `/nu`. | `.claude/skills/<slug>/SKILL.md` |
 | **Maintenance cadence** | Recurring tasks checked at session start. Overdue tasks surfaced automatically. | `MAINTENANCE.md` |
 | **Persistent memory** | Key facts survive across sessions. Version-controlled in your repo. | `.claude-memory/MEMORY.md` |
 | **Document discipline** | Living docs vs. snapshots vs. scrap , clear rules for what gets updated and when. | `CLAUDE.md` template |
@@ -147,7 +147,6 @@ Skills are slash commands defined in `.claude/skills/<slug>/SKILL.md`. TAS ships
 
 | Skill | What it does |
 |-------|-------------|
-| `/commit` | Stage diffs, generate commit message, commit |
 | `/done` | Check if all session work is complete |
 | `/queue` | Capture a task to QUEUE.md for a future session |
 | `/nu` | Create a new skill from a description |
@@ -220,7 +219,6 @@ your-project/
 │   │   ├── input-capture.sh      # UserPromptSubmit → capture prompts
 │   │   └── input-analytics.sh    # Input telemetry analytics CLI
 │   ├── skills/
-│   │   ├── commit/SKILL.md
 │   │   ├── done/SKILL.md
 │   │   ├── queue/SKILL.md
 │   │   ├── nu/SKILL.md
