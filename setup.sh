@@ -269,15 +269,13 @@ fi
 
 info "Step 5/6: Installing analytics..."
 run mkdir -p "$SCRIPTS_DEST"
-for script in cc-budget.sh; do
-  if [ ! -f "$SCRIPTS_DEST/$script" ]; then
-    run cp "$SCRIPT_DIR/scripts/$script" "$SCRIPTS_DEST/$script"
-    run chmod +x "$SCRIPTS_DEST/$script"
-    ok "  Installed scripts/$script"
-  else
-    warn "  Skipping scripts/$script (already exists)"
-  fi
-done
+if [ ! -f "$SCRIPTS_DEST/cc-budget.sh" ]; then
+  run cp "$SCRIPT_DIR/scripts/cc-budget.sh" "$SCRIPTS_DEST/cc-budget.sh"
+  run chmod +x "$SCRIPTS_DEST/cc-budget.sh"
+  ok "  Installed scripts/cc-budget.sh"
+else
+  warn "  Skipping scripts/cc-budget.sh (already exists)"
+fi
 
 # --- Step 6: Create data directories ---
 

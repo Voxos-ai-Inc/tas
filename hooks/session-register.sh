@@ -3,7 +3,6 @@
 # Wired to: hooks.SessionStart in ~/.claude/settings.json
 
 source "$(dirname "$0")/utils.sh"
-source "$(dirname "$0")/utils.sh"
 INPUT=$(cat)
 SESSION_ID=$(echo "$INPUT" | jq -r '.session_id')
 CWD=$(echo "$INPUT" | jq -r '.cwd')

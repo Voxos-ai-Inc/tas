@@ -1,0 +1,6 @@
+# SC1091: Can't follow dynamic source paths (source "$(dirname "$0")/utils.sh")
+disable=SC1091
+# SC2016: Intentional single-quoted $vars in jq expressions
+disable=SC2016
+# SC2015: Intentional A && B || C pattern for fallback chains
+disable=SC2015

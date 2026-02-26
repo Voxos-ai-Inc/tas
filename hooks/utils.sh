@@ -7,7 +7,7 @@ _path() { command -v cygpath >/dev/null 2>&1 && cygpath -w "$1" || echo "$1"; }
 
 # Cross-platform jq file wrapper: converts paths for Windows/MSYS if needed
 _jqf() {
-  local file="${@: -1}"
+  local file="${*: -1}"
   local args=("${@:1:$#-1}")
   jq "${args[@]}" "$(_path "$file")"
 }

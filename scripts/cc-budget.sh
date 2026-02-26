@@ -26,10 +26,8 @@ case "$CMD" in
   summary)
     require_file "$SESSIONS_FILE" "sessions"
     WIN_SF="$(_path "$SESSIONS_FILE")"
-    TASK_FILE_EXISTS=false
     TOTAL_TASKS=0
     if [ -f "$TASKS_FILE" ] && [ -s "$TASKS_FILE" ]; then
-      TASK_FILE_EXISTS=true
       WIN_TF="$(_path "$TASKS_FILE")"
       TOTAL_TASKS=$(jq -s '[.[] | select(.event == "estimate")] | length' "$WIN_TF")
     fi
