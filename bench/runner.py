@@ -1,7 +1,7 @@
 """Benchmark runner — orchestrates task execution across conditions.
 
 Usage:
-    python runner.py run --label baseline-v1 [--condition vanilla|harness|both] [--task fix-average] [--trials 3]
+    python runner.py run --label baseline-v1 [--condition vanilla|tas|both] [--task fix-average] [--trials 3]
     python runner.py list [--category single-file]
     python runner.py verify <template>
 """
@@ -19,8 +19,8 @@ from config import (
     CONDITIONS,
     DEFAULT_MODEL,
     DEFAULT_TRIALS,
-    HARNESS,
-    HARNESS_CLAUDE_MD,
+    TAS,
+    TAS_CLAUDE_MD,
     MAX_TURNS,
     RESULTS_DIR,
     TEMPLATES_DIR,
@@ -42,9 +42,9 @@ def setup_workspace(task, condition: str, trial: int) -> Path:
     template = TEMPLATES_DIR / task.template
     shutil.copytree(template, workspace)
 
-    # Inject harness files for the harness condition
-    if condition == HARNESS:
-        _install_harness(workspace, task)
+    # Inject TAS files for the TAS condition
+    if condition == TAS:
+        _install_tas(workspace, task)
 
     # Run task-specific setup (e.g., inject test files)
     if task.setup:
@@ -53,11 +53,11 @@ def setup_workspace(task, condition: str, trial: int) -> Path:
     return workspace
 
 
-def _install_harness(workspace: Path, task):
-    """Install harness scaffolding into the workspace."""
+def _install_tas(workspace: Path, task):
+    """Install TAS scaffolding into the workspace."""
     # CLAUDE.md with project-specific guidance
     claude_md = workspace / "CLAUDE.md"
-    claude_md.write_text(HARNESS_CLAUDE_MD.format(project_name=task.template))
+    claude_md.write_text(TAS_CLAUDE_MD.format(project_name=task.template))
 
     # Living docs
     for doc_name, content in [
@@ -126,7 +126,7 @@ def run_trial(task, condition: str, trial: int, model: str) -> dict:
 
     # Build the prompt
     prompt = task.prompt
-    if condition == HARNESS:
+    if condition == TAS:
         prompt = f"Read CLAUDE.md first, then: {prompt}"
 
     # Run Claude
@@ -277,13 +277,13 @@ def cmd_verify(args):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Harness benchmark runner")
+    parser = argparse.ArgumentParser(description="TAS benchmark runner")
     sub = parser.add_subparsers(dest="command", required=True)
 
     # run
     p_run = sub.add_parser("run", help="Run benchmark trials")
     p_run.add_argument("--label", required=True, help="Label for this run (e.g., baseline-v1)")
-    p_run.add_argument("--condition", default="both", choices=["vanilla", "harness", "both"])
+    p_run.add_argument("--condition", default="both", choices=["vanilla", "tas", "both"])
     p_run.add_argument("--task", help="Run a single task by ID")
     p_run.add_argument("--category", choices=["single-file", "multi-file", "refactor"])
     p_run.add_argument("--trials", type=int, default=DEFAULT_TRIALS)

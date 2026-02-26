@@ -1,11 +1,11 @@
 #!/bin/bash
-# Claude Code Harness — Setup Script
+# TAS — Setup Script
 # Installs hooks, skills, memory, and templates into your project.
 #
 # Usage:
-#   curl -fsSL https://raw.githubusercontent.com/voxos-ai/harness/main/setup.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/Voxos-ai-Inc/tas/main/setup.sh | bash
 #   — or —
-#   git clone https://github.com/Voxos-ai-Inc/harness.git && cd harness && bash setup.sh
+#   git clone https://github.com/Voxos-ai-Inc/tas.git && cd tas && bash setup.sh
 #
 # Prerequisites: jq, git, bash
 
@@ -18,10 +18,10 @@ YELLOW='\033[1;33m'
 CYAN='\033[0;36m'
 NC='\033[0m'
 
-info()  { echo -e "${CYAN}[harness]${NC} $1"; }
-ok()    { echo -e "${GREEN}[harness]${NC} $1"; }
-warn()  { echo -e "${YELLOW}[harness]${NC} $1"; }
-fail()  { echo -e "${RED}[harness]${NC} $1"; exit 1; }
+info()  { echo -e "${CYAN}[tas]${NC} $1"; }
+ok()    { echo -e "${GREEN}[tas]${NC} $1"; }
+warn()  { echo -e "${YELLOW}[tas]${NC} $1"; }
+fail()  { echo -e "${RED}[tas]${NC} $1"; exit 1; }
 
 # --- Preflight checks ---
 
@@ -38,10 +38,10 @@ fi
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 if [ ! -d "$SCRIPT_DIR/hooks" ]; then
   # Running via curl pipe — download to temp
-  info "Downloading harness files..."
+  info "Downloading TAS files..."
   TMPDIR=$(mktemp -d)
-  git clone --depth 1 https://github.com/Voxos-ai-Inc/harness.git "$TMPDIR/harness" 2>/dev/null
-  SCRIPT_DIR="$TMPDIR/harness"
+  git clone --depth 1 https://github.com/Voxos-ai-Inc/tas.git "$TMPDIR/tas" 2>/dev/null
+  SCRIPT_DIR="$TMPDIR/tas"
 fi
 
 CLAUDE_DIR="$HOME/.claude"
@@ -53,7 +53,7 @@ SCRIPTS_DEST="$REPO_ROOT/scripts"
 
 echo ""
 echo -e "${CYAN}╔══════════════════════════════════════════╗${NC}"
-echo -e "${CYAN}║   Claude Code Harness — Setup            ║${NC}"
+echo -e "${CYAN}║   TAS — Setup            ║${NC}"
 echo -e "${CYAN}║   Session tracking, token budgeting,     ║${NC}"
 echo -e "${CYAN}║   input telemetry, skills, maintenance   ║${NC}"
 echo -e "${CYAN}╚══════════════════════════════════════════╝${NC}"

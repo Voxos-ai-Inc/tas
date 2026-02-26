@@ -1,4 +1,4 @@
-# Harness Benchmark
+# TAS Benchmark
 
 Does operational scaffolding make AI coding agents better? This benchmark measures it.
 
@@ -14,7 +14,7 @@ Giving Claude Code structured context (CLAUDE.md, prove-it discipline, gotchas, 
 
 Two conditions tested against the same tasks:
 
-| | Vanilla | Harness |
+| | Vanilla | TAS |
 |---|---|---|
 | CLAUDE.md | None | Full template with knowledge map, prove-it loop, gotchas |
 | Memory | None | `.claude-memory/MEMORY.md` |
@@ -77,20 +77,6 @@ Each labeled run saves to `results/<label>/`:
 results/<label>/
 ├── config.json      # Run configuration (model, trials, tasks)
 └── results.json     # Per-trial results with all metrics
-```
-
-=== baseline-v1: Vanilla vs Harness ===
-
-Metric                           vanilla          harness            Delta
-------------------------------------------------------------------------
-  Success rate                       64%              82%    +18.0 (+28%)
-  Wall time (median, s)             87.3             65.1   -22.2 (-25%)
-  Cost (median, $)               $0.0412          $0.0298  -$0.0114 (-28%)
-  Turns (median)                    12.0              8.0    -4.0 (-33%)
-  Files changed (median)            3.0              2.0    -1.0 (-33%)
-
-  Wilcoxon (wall_time): W=12.0, p=0.0234 (sig: YES)
-  Wilcoxon (cost): W=15.0, p=0.0312 (sig: YES)
 ```
 
 ## Adding Tasks

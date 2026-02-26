@@ -1,7 +1,7 @@
 """Statistical comparison of benchmark results.
 
 Usage:
-    python compare.py <label>                    # compare vanilla vs harness within a run
+    python compare.py <label>                    # compare vanilla vs TAS within a run
     python compare.py <label_a> <label_b>        # compare two labeled runs
     python compare.py <label> --by-category      # breakdown by task category
 """
@@ -12,7 +12,7 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 
-from config import HARNESS, RESULTS_DIR, VANILLA
+from config import TAS, RESULTS_DIR, VANILLA
 
 
 def load_results(label: str) -> list:
@@ -167,21 +167,21 @@ def print_comparison(label_a: str, agg_a: dict, label_b: str, agg_b: dict, stats
 
 
 def cmd_compare_within(args):
-    """Compare vanilla vs harness within a single labeled run."""
+    """Compare vanilla vs TAS within a single labeled run."""
     results = load_results(args.label)
 
     vanilla = [r for r in results if r["condition"] == VANILLA]
-    harness = [r for r in results if r["condition"] == HARNESS]
+    tas_results = [r for r in results if r["condition"] == TAS]
 
-    if not vanilla or not harness:
-        print("Need both vanilla and harness results for comparison.")
+    if not vanilla or not tas_results:
+        print("Need both vanilla and TAS results for comparison.")
         sys.exit(1)
 
     agg_v = aggregate(vanilla)
-    agg_h = aggregate(harness)
+    agg_h = aggregate(tas_results)
 
     # Paired statistics: match by task_id + trial
-    pairs = _build_pairs(vanilla, harness)
+    pairs = _build_pairs(vanilla, tas_results)
     stats = {}
     if pairs:
         stats["wall_time"] = wilcoxon_test(
@@ -193,11 +193,11 @@ def cmd_compare_within(args):
             [p[1]["cost_usd"] for p in pairs],
         )
 
-    print(f"\n=== {args.label}: Vanilla vs Harness ===\n")
-    print_comparison("vanilla", agg_v, "harness", agg_h, stats)
+    print(f"\n=== {args.label}: Vanilla vs TAS ===\n")
+    print_comparison("vanilla", agg_v, "tas", agg_h, stats)
 
     if args.by_category:
-        _print_category_breakdown(vanilla, harness)
+        _print_category_breakdown(vanilla, tas_results)
 
 
 def cmd_compare_across(args):
@@ -212,15 +212,15 @@ def cmd_compare_across(args):
     print_comparison(args.label, agg_a, args.label_b, agg_b)
 
 
-def _build_pairs(vanilla: list, harness: list) -> list:
-    """Match vanilla/harness results by task_id + trial for paired tests."""
+def _build_pairs(vanilla: list, tas_results: list) -> list:
+    """Match vanilla/TAS results by task_id + trial for paired tests."""
     v_index = {}
     for r in vanilla:
         key = (r["task_id"], r["trial"])
         v_index[key] = r
 
     pairs = []
-    for r in harness:
+    for r in tas_results:
         key = (r["task_id"], r["trial"])
         if key in v_index:
             pairs.append((v_index[key], r))
@@ -228,13 +228,13 @@ def _build_pairs(vanilla: list, harness: list) -> list:
     return pairs
 
 
-def _print_category_breakdown(vanilla: list, harness: list):
+def _print_category_breakdown(vanilla: list, tas_results: list):
     """Print per-category comparison."""
-    categories = sorted(set(r["category"] for r in vanilla + harness))
+    categories = sorted(set(r["category"] for r in vanilla + tas_results))
 
     for cat in categories:
         v_cat = [r for r in vanilla if r["category"] == cat]
-        h_cat = [r for r in harness if r["category"] == cat]
+        h_cat = [r for r in tas_results if r["category"] == cat]
 
         if not v_cat or not h_cat:
             continue
@@ -243,7 +243,7 @@ def _print_category_breakdown(vanilla: list, harness: list):
         agg_h = aggregate(h_cat)
 
         print(f"\n--- {cat} ---\n")
-        print_comparison("vanilla", agg_v, "harness", agg_h)
+        print_comparison("vanilla", agg_v, "tas", agg_h)
 
 
 def main():

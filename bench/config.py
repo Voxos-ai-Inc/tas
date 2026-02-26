@@ -3,7 +3,7 @@
 from pathlib import Path
 
 BENCH_DIR = Path(__file__).parent
-HARNESS_ROOT = BENCH_DIR.parent
+TAS_ROOT = BENCH_DIR.parent
 TEMPLATES_DIR = BENCH_DIR / "templates"
 WORKSPACES_DIR = BENCH_DIR / "workspaces"
 RESULTS_DIR = BENCH_DIR / "results"
@@ -16,16 +16,16 @@ TIMEOUT_SECONDS = 300  # 5 minutes per task
 
 # Conditions
 VANILLA = "vanilla"
-HARNESS = "harness"
-CONDITIONS = [VANILLA, HARNESS]
+TAS = "tas"
+CONDITIONS = [VANILLA, TAS]
 
 # Categories
 SINGLE_FILE = "single-file"
 MULTI_FILE = "multi-file"
 REFACTOR = "refactor"
 
-# Harness CLAUDE.md template injected into harness-condition workspaces
-HARNESS_CLAUDE_MD = """# {project_name}
+# TAS CLAUDE.md template injected into TAS-condition workspaces
+TAS_CLAUDE_MD = """# {project_name}
 
 ## Knowledge Map
 - Source code: `src/`
