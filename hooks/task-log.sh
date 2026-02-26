@@ -3,7 +3,7 @@
 # Usage:
 #   task-log.sh estimate <session_id> <project> <service> "<description>" <estimated_tokens>
 #   task-log.sh start <session_id> <task_id>
-#   task-log.sh complete <session_id> <task_id> <actual_tokens_est> <files_changed> [commit_hash]
+#   task-log.sh complete <session_id> <task_id> <reported_tokens> <files_changed> [commit_hash]
 
 set -euo pipefail
 source "$(dirname "$0")/utils.sh"
@@ -62,7 +62,7 @@ case "$CMD" in
   complete)
     SESSION_ID="${1:?session_id required}"
     TASK_ID="${2:?task_id required}"
-    ACTUAL_TOKENS="${3:?actual_tokens_est required}"
+    ACTUAL_TOKENS="${3:?reported_tokens required}"
     FILES_CHANGED="${4:?files_changed required}"
     COMMIT_HASH="${5:-}"
     NOW=$(date -u +%Y-%m-%dT%H:%M:%SZ)
@@ -71,11 +71,11 @@ case "$CMD" in
       --arg event "complete" \
       --arg session_id "$SESSION_ID" \
       --arg task_id "$TASK_ID" \
-      --argjson actual_tokens "$ACTUAL_TOKENS" \
+      --argjson reported_tokens "$ACTUAL_TOKENS" \
       --argjson files_changed "$FILES_CHANGED" \
       --arg commit_hash "$COMMIT_HASH" \
       --arg timestamp "$NOW" \
-      '{event: $event, session_id: $session_id, task_id: $task_id, actual_tokens: $actual_tokens, files_changed: $files_changed, commit_hash: $commit_hash, timestamp: $timestamp}' \
+      '{event: $event, session_id: $session_id, task_id: $task_id, reported_tokens: $reported_tokens, files_changed: $files_changed, commit_hash: $commit_hash, timestamp: $timestamp}' \
       >> "$(_path "$TASKS_FILE")"
 
     echo "completed $TASK_ID"

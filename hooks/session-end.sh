@@ -59,7 +59,28 @@ if [ -n "$TRANSCRIPT_PATH" ] && [ -f "$TRANSCRIPT_PATH" ]; then
   TRANSCRIPT_BYTES=$(wc -c < "$TRANSCRIPT_PATH" 2>/dev/null || echo 0)
 
   # Single-pass extraction: bytes, real token counts, model, tool counts, projects
-  PARSE_RESULT=$(jq -s '
+  # For large transcripts (>5MB), use streaming to avoid memory issues
+  if [ "$TRANSCRIPT_BYTES" -gt 5242880 ] 2>/dev/null; then
+    PARSE_RESULT=$(jq -n 'reduce inputs as $item (
+      {assistant_bytes:0, user_bytes:0, turn_count:0, compact_count:0, compact_pre_tokens:[],
+       output_tokens:0, input_tokens:0, cache_creation_tokens:0, cache_read_tokens:0,
+       model:"unknown", tool_counts:{}, inferred_projects:[]};
+      if $item.type == "assistant" then
+        .assistant_bytes += ($item.message // "" | tostring | length) |
+        .turn_count += 1 |
+        .output_tokens += ($item.message.usage.output_tokens // 0) |
+        .input_tokens += ($item.message.usage.input_tokens // 0) |
+        .cache_creation_tokens += ($item.message.usage.cache_creation_input_tokens // 0) |
+        .cache_read_tokens += ($item.message.usage.cache_read_input_tokens // 0) |
+        if .model == "unknown" then .model = ($item.message.model // "unknown") else . end
+      elif $item.type == "user" then
+        .user_bytes += ($item.message // "" | tostring | length)
+      elif $item.subtype == "compact_boundary" then
+        .compact_count += 1 | .compact_pre_tokens += [$item.num_tokens_truncated // 0]
+      else . end
+    )' "$(_path "$TRANSCRIPT_PATH")" 2>/dev/null || echo '{}')
+  else
+    PARSE_RESULT=$(jq -s '
     {
       assistant_bytes: ([.[] | select(.type == "assistant") | (.message // "" | tostring | length)] | add // 0),
       user_bytes: ([.[] | select(.type == "user") | (.message // "" | tostring | length)] | add // 0),
@@ -75,6 +96,7 @@ if [ -n "$TRANSCRIPT_PATH" ] && [ -f "$TRANSCRIPT_PATH" ]; then
       inferred_projects: ([.[] | select(.type == "assistant") | .message.content[]? | select(.type == "tool_use") | .input | (.file_path // .path // .command // "") | capture("projects/(?<p>[^/]+)/") | .p] | unique)
     }
   ' "$(_path "$TRANSCRIPT_PATH")" 2>/dev/null || echo '{}')
+  fi
 
   if [ -n "$PARSE_RESULT" ] && [ "$PARSE_RESULT" != "{}" ]; then
     ASSISTANT_BYTES=$(echo "$PARSE_RESULT" | jq -r '.assistant_bytes // 0')
@@ -107,11 +129,15 @@ INFERRED_PROJECTS="${INFERRED_PROJECTS:-[]}"
 TRANSCRIPT_MODEL="${TRANSCRIPT_MODEL:-unknown}"
 
 # Compute estimated API cost (USD per 1M tokens)
-# Default rates: Sonnet input=$3, output=$15. Adjust for your model.
-# Opus: input=$15, output=$75. Haiku: input=$0.80, output=$4.
+# Model-aware pricing (USD per 1M tokens)
 # Cache: creation ~1.25x input, read ~0.1x input.
-ESTIMATED_COST=$(echo "$INPUT_TOKENS $OUTPUT_TOKENS $CACHE_CREATION_TOKENS $CACHE_READ_TOKENS" | awk '{
-  cost = ($1 * 3 + $2 * 15 + $3 * 3.75 + $4 * 0.30) / 1000000
+case "$MODEL" in
+  *opus*)   IN_RATE=15;    OUT_RATE=75;   CACHE_CR_RATE=18.75; CACHE_RD_RATE=1.50 ;;
+  *haiku*)  IN_RATE=0.80;  OUT_RATE=4;    CACHE_CR_RATE=1.00;  CACHE_RD_RATE=0.08 ;;
+  *)        IN_RATE=3;     OUT_RATE=15;   CACHE_CR_RATE=3.75;  CACHE_RD_RATE=0.30 ;;  # sonnet default
+esac
+ESTIMATED_COST=$(echo "$INPUT_TOKENS $OUTPUT_TOKENS $CACHE_CREATION_TOKENS $CACHE_READ_TOKENS $IN_RATE $OUT_RATE $CACHE_CR_RATE $CACHE_RD_RATE" | awk '{
+  cost = ($1 * $5 + $2 * $6 + $3 * $7 + $4 * $8) / 1000000
   printf "%.2f", cost
 }')
 

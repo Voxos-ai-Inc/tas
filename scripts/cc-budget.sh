@@ -129,8 +129,8 @@ case "$CMD" in
         if . then {
           description: .description,
           estimated: .estimated,
-          actual: $c.actual_tokens,
-          ratio: (($c.actual_tokens / .estimated) * 100 | round / 100)
+          actual: $c.reported_tokens,
+          ratio: (($c.reported_tokens / .estimated) * 100 | round / 100)
         } else empty end
       )
     ' "$WIN_TF" | jq -r '.[] | [
@@ -150,11 +150,11 @@ case "$CMD" in
         [.[] | select(.event == "estimate")] | map({(.task_id): .estimated_tokens}) | add // {}
       ) as $est |
       [.[] | select(.event == "complete")] |
-      map(($est[.task_id] // null) as $e | if $e then {est: $e, act: .actual_tokens} else empty end) |
+      map(($est[.task_id] // null) as $e | if $e then {est: $e, act: .reported_tokens} else empty end) |
       if length == 0 then {count: 0, avg_ratio: 0, overestimates: 0, underestimates: 0}
       else {
         count: length,
-        avg_ratio: ([.[].act / .[].est] | add / length | . * 100 | round / 100),
+        avg_ratio: ([.[] | .act / .est] | add / length | . * 100 | round / 100),
         overestimates: ([.[] | select(.est > .act)] | length),
         underestimates: ([.[] | select(.act > .est)] | length),
         exact: ([.[] | select(.act == .est)] | length)

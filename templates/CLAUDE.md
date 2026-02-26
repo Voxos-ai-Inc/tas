@@ -177,7 +177,7 @@ bash ~/.claude/hooks/task-log.sh estimate "$SESSION_ID" <project> <service> "<de
 bash ~/.claude/hooks/task-log.sh start "$SESSION_ID" <task_id>
 
 # 3. Complete — records actuals
-bash ~/.claude/hooks/task-log.sh complete "$SESSION_ID" <task_id> <actual_tokens_est> <files_changed> [commit_hash]
+bash ~/.claude/hooks/task-log.sh complete "$SESSION_ID" <task_id> <reported_tokens> <files_changed> [commit_hash]
 ```
 
 ### Estimation Guide

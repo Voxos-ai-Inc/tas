@@ -279,7 +279,7 @@ Global files created/modified:
 ```json
 {"event":"estimate","session_id":"...","task_id":"myproject-api-1708300000","project":"myproject","service":"api","description":"Add auth middleware","estimated_tokens":15000,"timestamp":"2026-02-20T10:05:00Z"}
 {"event":"start","session_id":"...","task_id":"myproject-api-1708300000","timestamp":"2026-02-20T10:05:01Z"}
-{"event":"complete","session_id":"...","task_id":"myproject-api-1708300000","actual_tokens":12000,"files_changed":4,"commit_hash":"abc1234","timestamp":"2026-02-20T10:30:00Z"}
+{"event":"complete","session_id":"...","task_id":"myproject-api-1708300000","reported_tokens":12000,"files_changed":4,"commit_hash":"abc1234","timestamp":"2026-02-20T10:30:00Z"}
 ```
 
 ### Session Summaries (`~/.claude/task-tracking/sessions.jsonl`)
