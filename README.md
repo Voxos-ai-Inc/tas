@@ -377,6 +377,13 @@ See `bench/README.md` for full methodology.
 - **git** , for the setup script and version control of memory/hooks
 
 
+## Limitations
+
+- **Single-repo symlinks**: `~/.claude/hooks` and `~/.claude/skills` are symlinked to one repo at a time. If you work across multiple repos, the last `setup.sh` run wins. See "Multi-project setup" above for workarounds.
+- **Raw prompt storage**: Input telemetry stores your prompts as plaintext in `~/.claude/input-telemetry/raw.jsonl`. These files are local-only (never uploaded), but be aware they exist if you share your machine or home directory.
+- **jq dependency**: All hooks and analytics scripts require `jq`. If `jq` is unavailable, hooks will silently fail rather than block your Claude Code session.
+- **Bash 4+ required**: Some features (associative arrays in analytics) need bash 4+. macOS ships bash 3 by default; install bash 5 via Homebrew.
+
 ## FAQ
 
 **What does TAS stand for?**

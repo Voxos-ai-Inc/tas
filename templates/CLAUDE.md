@@ -81,7 +81,7 @@ Treat these as non-negotiable build constraints.
 
 ### Agent-Specific Rules
 
-- When writing Terraform/IaC, never create IAM policies with `"Effect": "Allow", "Action": "*"` or `"Resource": "*"` on mutating actions.
+- When writing Terraform/IaC, never create overly permissive policies (e.g., wildcard actions or resources on mutating operations). Scope every grant to the minimum required.
 - When adding a new API route, default to requiring auth. Ask before making it public.
 - When creating storage buckets, always include public access blocks unless the user explicitly says otherwise.
 - If you spot a security violation in existing code while working on something else, flag it.

@@ -14,13 +14,13 @@ If multiple tasks are overdue, run them in priority order (session-start first, 
 
 ### 1. Reminders Triage
 - **Cadence:** session-start
-- **Last run:** {{YYYY-MM-DDTHH:MM:SSZ}}
+- **Last run:** 1970-01-01T00:00:00Z
 - **What:** Read `REMINDERS.md`. For each item whose check date has passed, verify the condition. Remove resolved items. Flag unresolved items to the user.
 - **Output:** Updated `REMINDERS.md` with resolved items removed.
 
 ### 2. Memory & Doc Hygiene
 - **Cadence:** 1 hour
-- **Last run:** {{YYYY-MM-DDTHH:MM:SSZ}}
+- **Last run:** 1970-01-01T00:00:00Z
 - **What:**
   1. Verify file paths referenced in `.claude-memory/MEMORY.md` still exist.
   2. Check project's `CLAUDE.md` — do instructions match the current codebase?
@@ -30,7 +30,7 @@ If multiple tasks are overdue, run them in priority order (session-start first, 
 
 ### 3. Cost Tracking Review
 - **Cadence:** 1 day
-- **Last run:** {{YYYY-MM-DDTHH:MM:SSZ}}
+- **Last run:** 1970-01-01T00:00:00Z
 - **What:**
   1. Check billing / usage for per-service spend (LLM calls, database, compute, third-party APIs).
   2. Flag any service exceeding your threshold.
