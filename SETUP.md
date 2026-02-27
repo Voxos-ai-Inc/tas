@@ -21,6 +21,10 @@ Replace `<path-to-tas>` with the actual path where this repo was cloned. If you 
 
 This script installs hooks, skills, templates, memory directory, analytics, and data directories. It is safe to re-run — it skips files that already exist.
 
+You can preview what will happen without making changes by running `bash <path-to-tas>/setup.sh --dry-run` first.
+
+**Warning:** The setup script creates symlinks from `~/.claude/hooks/` and `~/.claude/skills/` to this project's `.claude/` directory, and registers hooks in `~/.claude/settings.json`. If the user already has hooks or skills from another project, those symlinks will be replaced. Warn the user before proceeding if you detect existing files at those paths.
+
 ## Step 2: Fill in template variables
 
 The setup script copies template files with placeholder values. Replace these with real values. Ask the user for any value you cannot infer from the repository.
@@ -50,7 +54,7 @@ Also delete the instruction line: `> Replace {{PLACEHOLDERS}} with your values. 
 
 Run these checks and confirm each passes:
 
-1. `.claude/hooks/` exists and contains `.sh` files (expect 8: session-register, session-end, task-check, task-log, cc-sessions, cc-recover, input-capture, input-analytics)
+1. `.claude/hooks/` exists and contains `.sh` files (expect 9: session-register, session-end, task-check, task-log, cc-sessions, cc-recover, input-capture, input-analytics, utils)
 2. `.claude/skills/` exists and contains skill directories (expect 10: done, queue, nu, preview, code-audit, brainstorm, recover, attention, pentest, idea-mining)
 3. `.claude-memory/MEMORY.md` exists
 4. `CLAUDE.md` exists at repo root with no remaining `{{` placeholders
