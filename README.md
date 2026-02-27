@@ -28,10 +28,21 @@ You don't manage TAS. You install it and let it do its thing.
 | **Hypothesis Protocol** | Hypothesis → Set A → Change → Set B → Verdict. No vibes-based development. | `CLAUDE.md` template |
 | **Security Posture** | Non-negotiable security constraints: secrets management, auth, input validation, least-privilege, audit logging. | `CLAUDE.md` template |
 
-## Quick Start
+## Setup
+
+### Option A: Let Claude Code do it
+
+Open Claude Code in your project and say:
+
+```
+Set up TAS from github.com/Voxos-ai-Inc/tas
+```
+
+Claude Code will clone the repo, run the setup script, fill in your project-specific template variables, and verify the installation. It follows [`SETUP.md`](SETUP.md) to handle everything, including the configuration that manual setup leaves for you to do by hand.
+
+### Option B: Manual
 
 ```bash
-# Clone and install into your project
 git clone https://github.com/Voxos-ai-Inc/tas.git /tmp/tas
 cd /path/to/your/project
 bash /tmp/tas/setup.sh
@@ -50,6 +61,8 @@ The setup script:
 4. Creates template files (`CLAUDE.md`, `MAINTENANCE.md`, `REMINDERS.md`, `GOTCHAS.md`, `MILESTONES.md`)
 5. Sets up `.claude-memory/` for persistent agent memory
 6. Creates data directories for session tracking, task tracking, and input telemetry
+
+After running, edit `CLAUDE.md` to replace `{{PLACEHOLDER}}` values with your project details.
 
 **Prerequisites:** `jq`, `git`, `bash`. Works on macOS, Linux, and Windows (Git Bash / MSYS2).
 
