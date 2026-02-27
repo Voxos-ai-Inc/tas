@@ -1,4 +1,4 @@
-# TAS
+# TAS: Tracking, Automation, and Skills
 
 <p align="center">
   <img src=".github/tas-logo.png" width="180" />
